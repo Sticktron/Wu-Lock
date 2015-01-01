@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>title</key>
+	<string>Wu-Lock Settings</string>
+	
+	<key>items</key>
+	<array>
+		
+		<!-- [] Header -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>headerCellClass</key>
+			<string>WLLogoCell</string>
+		</dict>
+		
+		<!-- Enabled Switch -->
+		<dict>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>key</key>
+			<string>Enabled</string>
+			<key>label</key>
+			<string>Enabled</string>
+			<key>default</key>
+			<true/>
+			<key>set</key>
+			<string>setEnabledWithAlert:specifier:</string>
+		</dict>
+		
+		
+		
+		<!-- [] More Settings -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Settings</string>
+		</dict>
+		
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>default</key>
+			<true/>
+			<key>defaults</key>
+			<string>com.sticktron.wulocksettings</string>
+			<key>key</key>
+			<string>AwesomeSwitch1</string>
+			<key>label</key>
+			<string>Awesome Switch 1</string>
+		</dict>
+		
+		
+		
+		<!-- [] Support -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Support</string>
+		</dict>
+		
+		<!-- Email -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Send me an email</string>
+			<key>action</key>
+			<string>openEmail</string>
+			<key>icon</key>
+			<string>email.png</string>
+		</dict>
+		
+		<!-- Tweet -->
+		<dict>
+			<key>action</key>
+			<string>openTwitter</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Send me a tweet</string>
+			<key>icon</key>
+			<string>twitter.png</string>
+		</dict>
+		
+		
+		
+		<!-- [] Links -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			
+			<key>label</key>
+			<string>Links</string>
+		</dict>
+		
+		<!-- /r/jailbreak -->
+		<dict>
+			<key>action</key>
+			<string>openReddit</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Join the /r/jailbreak community</string>
+			<key>icon</key>
+			<string>reddit.png</string>
+		</dict>
+		
+		<!-- Source Code -->
+		<dict>
+			<key>action</key>
+			<string>openGitHub</string>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Source code on GitHub</string>
+			<key>icon</key>
+			<string>github.png</string>
+		</dict>
+		
+		<!-- Donate -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>label</key>
+			<string>Donate 🍪</string>
+			<key>icon</key>
+			<string>paypal.png</string>
+			<key>action</key>
+			<string>openPayPal</string>
+		</dict>
+		
+		
+		
+		<!-- [] Extra -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string></string>
+			<key>footerText</key>
+			<string>Made by Sticktron.
+😈
+</string>
+		</dict>
+
+		
+	</array>
+</dict>
+</plist>

@@ -1,0 +1,10 @@
+{
+	entry = {
+		bundle = WuLockSettings;
+		cell = PSLinkCell;
+		detail = WuLockSettingsController;
+		icon = icon.png;
+		isController = 1;
+		label = Wu-Lock;
+	};
+}
