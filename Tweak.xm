@@ -56,27 +56,24 @@
 
 
 
-#define kMarginBottom	100.0f
-#define kGlyphPath		@"/Library/Application Support/WuLock"
+#define MARGIN_BOTTOM		100.0f
+#define PATH_TO_GLYPHS		@"/Library/Application Support/WuLock"
+#define DEFAULT_GLYPH		@"wutang.png"
 
 static BOOL enabled;
 static BOOL showSlideTextImmediately;
-//static id glyphView = nil;
 
 
 
 %hook SBBacklightController
-
 - (double)defaultLockScreenDimInterval {
 	// default is 8 seconds
-	return 300;
+	return 120;
 }
-
 %end
 
 
 %hook SBLockScreenView
-
 - (void)_startAnimatingSlideToUnlockWithDelay:(double)delay {
 	if (showSlideTextImmediately) {
 		%orig(0);
@@ -84,7 +81,6 @@ static BOOL showSlideTextImmediately;
 		%orig;
 	}
 }
-
 %end
 
 
@@ -96,10 +92,9 @@ static BOOL showSlideTextImmediately;
 	if ((self = %orig)) {
 		
 		// load image
-		NSString *file = @"wu.png";
-		NSString *path = [kGlyphPath stringByAppendingPathComponent:file];
+		NSString *path = [PATH_TO_GLYPHS stringByAppendingPathComponent:DEFAULT_GLYPH];
 		UIImage *image = [[UIImage alloc] initWithContentsOfFile:path];
-		DebugLog(@"loaded image (%@)", NSStringFromCGSize(image.size));
+		DebugLog(@"loaded image (%@); size=%@", path, NSStringFromCGSize(image.size));
 		
 		
 //		// test one ////////
@@ -142,7 +137,7 @@ static BOOL showSlideTextImmediately;
 		// position
 		CGRect screenRect = [UIScreen mainScreen].bounds;
 		float x = screenRect.size.width + CGRectGetMidX(screenRect);
-		float y = screenRect.size.height - kMarginBottom - (image.size.height/2);
+		float y = screenRect.size.height - MARGIN_BOTTOM - (image.size.height/2);
 		glyphView2.center = (CGPoint){x, y};
 		
 		// add the image on top of the backdrop
@@ -158,8 +153,7 @@ static BOOL showSlideTextImmediately;
 		[glyphView2 release];
 		
 		
-		
-//			_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
+//		_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
 
 		[image release];
 	}
@@ -174,22 +168,6 @@ static BOOL showSlideTextImmediately;
 - (void)didMoveToWindow {
 	DebugLog0;
 	%orig;
-
-//
-//	// create view
-//
-//
-//
-//	// effect
-//	glyphView.alpha = 0.3f;
-//	[glyphView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-//	
-//	
-//	
-//	[self addSubview:glyphView];
-	
-	// animation?
-	//self addShineAnimationToView:glyphView];
 }
 
 
