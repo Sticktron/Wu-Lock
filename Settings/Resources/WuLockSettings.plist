@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>title</key>
-	<string>Wu-Lock Settings</string>
+	<string>Wu-Lock</string>
 	
 	<key>items</key>
 	<array>
@@ -13,48 +13,133 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>headerCellClass</key>
-			<string>WLLogoCell</string>
+			<string>WULogoCell</string>
 		</dict>
 		
 		<!-- Enabled Switch -->
 		<dict>
-			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
 			<key>cell</key>
 			<string>PSSwitchCell</string>
-			<key>key</key>
-			<string>Enabled</string>
 			<key>label</key>
 			<string>Enabled</string>
+			<key>key</key>
+			<string>Enabled</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
 			<key>default</key>
 			<true/>
 			<key>set</key>
 			<string>setEnabledWithAlert:specifier:</string>
+			<key>cellClass</key>
+			<string>WUSwitchCell</string>
 		</dict>
 		
 		
 		
-		<!-- [] More Settings -->
+		<!-- [] Appearance -->
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Settings</string>
+			<string>Appearance</string>
 		</dict>
 		
+		<!-- Style list -->
 		<dict>
 			<key>cell</key>
-			<string>PSSwitchCell</string>
-			<key>default</key>
-			<true/>
-			<key>defaults</key>
-			<string>com.sticktron.wulocksettings</string>
-			<key>key</key>
-			<string>AwesomeSwitch1</string>
+			<string>PSLinkListCell</string>
 			<key>label</key>
-			<string>Awesome Switch 1</string>
+			<string>Style</string>
+			<key>detail</key>
+			<string>PSListItemsController</string>
+			
+			<key>validTitles</key>
+			<array>
+				<string>White</string>
+				<string>Black</string>
+				<string>Vibrant blur</string>
+				<string>Burnt blur</string>
+				<string>Original</string>
+			</array>
+			
+			<key>validValues</key>
+			<array>
+				<string>white</string>
+				<string>black</string>
+				<string>vibrantblur</string>
+				<string>burntblur</string>
+				<string>original</string>
+			</array>
+			
+			<key>key</key>
+			<string>Style</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<string>white</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
 		</dict>
 		
+		
+		
+		<!-- [] Position -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Position</string>
+			<key>footerText</key>
+			<string>Negative numbers move the glyph down</string>
+		</dict>
+		
+		<!-- Y-offset -->
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>label</key>
+			<string>Y Offset</string>
+			<key>keyboard</key>
+			<string>numbers</string>
+			<key>key</key>
+			<string>YOffset</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<string>0</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		
+		
+		<!-- [] Slide to unlock -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Slide to unlock</string>
+		</dict>
+		
+		
+		<!-- [] TouchID failed -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Touch ID failure</string>
+		</dict>
+		
+		
+		<!-- [] Auto-dim timeout -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Auto-dim timeout</string>
+		</dict>
+	
+	
 		
 		
 		<!-- [] Support -->
@@ -69,24 +154,28 @@
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
 			<key>label</key>
 			<string>Send me an email</string>
-			<key>action</key>
-			<string>openEmail</string>
 			<key>icon</key>
 			<string>email.png</string>
+			<key>action</key>
+			<string>openEmail</string>
 		</dict>
 		
 		<!-- Tweet -->
 		<dict>
-			<key>action</key>
-			<string>openTwitter</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
 			<key>label</key>
 			<string>Send me a tweet</string>
 			<key>icon</key>
 			<string>twitter.png</string>
+			<key>action</key>
+			<string>openTwitter</string>
 		</dict>
 		
 		
@@ -95,61 +184,38 @@
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
-			
 			<key>label</key>
 			<string>Links</string>
 		</dict>
 		
 		<!-- /r/jailbreak -->
 		<dict>
-			<key>action</key>
-			<string>openReddit</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
 			<key>label</key>
 			<string>Join the /r/jailbreak community</string>
 			<key>icon</key>
 			<string>reddit.png</string>
+			<key>action</key>
+			<string>openReddit</string>
 		</dict>
 		
 		<!-- Source Code -->
 		<dict>
-			<key>action</key>
-			<string>openGitHub</string>
 			<key>cell</key>
 			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
 			<key>label</key>
-			<string>Source code on GitHub</string>
+			<string>Source code at GitHub</string>
 			<key>icon</key>
 			<string>github.png</string>
-		</dict>
-		
-		<!-- Donate -->
-		<dict>
-			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>label</key>
-			<string>Donate 🍪</string>
-			<key>icon</key>
-			<string>paypal.png</string>
 			<key>action</key>
-			<string>openPayPal</string>
+			<string>openGitHub</string>
 		</dict>
 		
-		
-		
-		<!-- [] Extra -->
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string></string>
-			<key>footerText</key>
-			<string>Made by Sticktron.
-😈
-</string>
-		</dict>
-
 		
 	</array>
 </dict>
