@@ -28,10 +28,10 @@
 			<string>com.sticktron.wulock</string>
 			<key>default</key>
 			<true/>
-			<key>set</key>
-			<string>setEnabledWithAlert:specifier:</string>
 			<key>cellClass</key>
 			<string>WUSwitchCell</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
 		</dict>
 		
 		
@@ -42,6 +42,16 @@
 			<string>PSGroupCell</string>
 			<key>label</key>
 			<string>Appearance</string>
+		</dict>
+		
+		<!-- Image chooser -->
+		<dict>
+			<key>cell</key>
+			<string>PSLinkCell</string>
+			<key>label</key>
+			<string>Choose Image</string>
+			<key>detail</key>
+			<string>WUImageController</string>
 		</dict>
 		
 		<!-- Style list -->
@@ -90,7 +100,7 @@
 			<key>label</key>
 			<string>Position</string>
 			<key>footerText</key>
-			<string>Negative numbers move the glyph down</string>
+			<string>Negative numbers move the glyph down.</string>
 		</dict>
 		
 		<!-- Y-offset -->
@@ -121,6 +131,65 @@
 			<string>Slide to unlock</string>
 		</dict>
 		
+		<!-- Hide chevron -->
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Hide chevron</string>
+			<key>key</key>
+			<string>HideChevron</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<true/>
+			<key>cellClass</key>
+			<string>WUSwitchCell</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		<!-- Use custom text -->
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Use custom text?</string>
+			<key>key</key>
+			<string>UseCustomText</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<true/>
+			<key>cellClass</key>
+			<string>WUSwitchCell</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		<!-- Set custom text -->
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>label</key>
+			<string></string>
+			<key>key</key>
+			<string>CustomText</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<string></string>
+			<key>placeholder</key>
+			<string>Protect ya neck</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+			<key>alignment</key>
+			<integer>1</integer>
+		</dict>
+		
+		
+		
+		
 		
 		<!-- [] TouchID failed -->
 		<dict>
@@ -130,6 +199,45 @@
 			<string>Touch ID failure</string>
 		</dict>
 		
+		<!-- Use custom bio fail text -->
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>Use custom text?</string>
+			<key>key</key>
+			<string>UseCustomBioText</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<true/>
+			<key>cellClass</key>
+			<string>WUSwitchCell</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		<!-- Set custom bio fail text -->
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>label</key>
+			<string></string>
+			<key>key</key>
+			<string>CustomBioText</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<string></string>
+			<key>placeholder</key>
+			<string>Shame on a finga</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		
+		
+		
 		
 		<!-- [] Auto-dim timeout -->
 		<dict>
@@ -138,8 +246,27 @@
 			<key>label</key>
 			<string>Auto-dim timeout</string>
 		</dict>
-	
-	
+		
+		<!-- Timeout -->
+		<dict>
+			<key>cell</key>
+			<string>PSEditTextCell</string>
+			<key>label</key>
+			<string>Timeout</string>
+			<key>keyboard</key>
+			<string>numbers</string>
+			<key>key</key>
+			<string>DimTimeout</string>
+			<key>defaults</key>
+			<string>com.sticktron.wulock</string>
+			<key>default</key>
+			<string>8</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wulock.settingschanged</string>
+		</dict>
+		
+		
+		
 		
 		
 		<!-- [] Support -->
@@ -188,20 +315,6 @@
 			<string>Links</string>
 		</dict>
 		
-		<!-- /r/jailbreak -->
-		<dict>
-			<key>cell</key>
-			<string>PSButtonCell</string>
-			<key>cellClass</key>
-			<string>WUButtonCell</string>
-			<key>label</key>
-			<string>Join the /r/jailbreak community</string>
-			<key>icon</key>
-			<string>reddit.png</string>
-			<key>action</key>
-			<string>openReddit</string>
-		</dict>
-		
 		<!-- Source Code -->
 		<dict>
 			<key>cell</key>
@@ -209,11 +322,53 @@
 			<key>cellClass</key>
 			<string>WUButtonCell</string>
 			<key>label</key>
-			<string>Source code at GitHub</string>
+			<string>Source code on GitHub</string>
 			<key>icon</key>
 			<string>github.png</string>
 			<key>action</key>
 			<string>openGitHub</string>
+		</dict>
+		
+		<!-- website -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
+			<key>label</key>
+			<string>Check out my other work</string>
+			<key>icon</key>
+			<string>www.png</string>
+			<key>action</key>
+			<string>openWebsite</string>
+		</dict>
+		
+		<!-- /r/jailbreak -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
+			<key>label</key>
+			<string>Jailbreak community on Reddit</string>
+			<key>icon</key>
+			<string>reddit.png</string>
+			<key>action</key>
+			<string>openReddit</string>
+		</dict>
+		
+		<!-- Wu-Tang on Wikipedia -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
+			<key>label</key>
+			<string>Learn more about Wu-Tang Clan</string>
+			<key>icon</key>
+			<string>wikipedia.png</string>
+			<key>action</key>
+			<string>openWikipedia</string>
 		</dict>
 		
 		
