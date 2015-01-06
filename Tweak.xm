@@ -56,9 +56,9 @@
 
 
 
-#define MARGIN_BOTTOM		100.0f
-#define PATH_TO_GLYPHS		@"/Library/Application Support/WuLock"
-#define DEFAULT_GLYPH		@"wutang.png"
+#define MARGIN_BOTTOM		105.0f
+#define PATH_TO_GLYPHS		@"/Library/Application Support/WuLock/Default"
+#define DEFAULT_GLYPH		@"wu-tang.png"
 
 static BOOL enabled;
 static BOOL showSlideTextImmediately;

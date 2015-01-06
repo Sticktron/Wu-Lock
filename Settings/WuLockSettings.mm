@@ -14,14 +14,16 @@
 #import <Preferences/PSSwitchTableCell.h>
 
 
-
 #define HEADER_PATH				@"/Library/PreferenceBundles/WuLockSettings.bundle/header.png"
-#define USER_IMAGE_PATH			@"/Library/Application Support/WuLock/custom"
-#define DEFAULT_IMAGE_PATH		@"/Library/Application Support/WuLock/default"
+#define DEFAULT_IMAGES_PATH		@"/Library/Application Support/Wu-Lock"
+#define USER_IMAGES_PATH			[NSHomeDirectory() stringByAppendingPathComponent:@"Media/Wu-Lock"]
 
-#define WU_YELLOW		[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
-#define GRAPE			[UIColor colorWithRed:0.5 green:0 blue:1 alpha:1]
-#define IRON			[UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1]
+#define WU_YELLOW					[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
+#define IRON						[UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1]
+
+#define THUMBNAIL_TAG				1
+#define TITLE_TAG					2
+#define SUBTITLE_TAG				3
 
 
 
@@ -126,14 +128,12 @@
 	
 	return self;
 }
-
 - (id)specifiers {
 	if (_specifiers == nil) {
 		_specifiers = [self loadSpecifiersFromPlistName:@"WuLockSettings" target:self];
 	}
 	return _specifiers;
 }
-
 /*
 - (void)setEnabledWithAlert:(id)value specifier:(id)specifier {
 	[self setPreferenceValue:value specifier:specifier];
@@ -163,7 +163,6 @@
 	system("killall -HUP SpringBoard");
 }
 */
-
 - (void)openEmail {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:sticktron@hotmail.com"]];
 }
@@ -179,7 +178,6 @@
 - (void)openReddit {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://reddit.com/r/jailbreak"]];
 }
-
 - (void)openTwitter {
 	NSURL *url;
 	
@@ -215,10 +213,11 @@
 
 @interface WUImageController : PSViewController <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *tableView;
-@property (nonatomic, strong) NSMutableArray *defaultImages;
-@property (nonatomic, strong) NSMutableArray *userImages;
+@property (nonatomic, strong) NSArray *defaultImages;
+@property (nonatomic, strong) NSArray *userImages;
 @property (nonatomic, strong) NSString *selectedImage;
-
+@property (nonatomic, strong) NSOperationQueue *queue;
+@property (nonatomic, strong) NSCache *imageCache;
 @end
 
 
@@ -230,8 +229,20 @@
 	if (self) {
 		DebugLog0;
 		
-		_defaultImages = [NSMutableArray arrayWithObjects:@"test", nil];
-		_userImages = [NSMutableArray arrayWithObjects:@"test2", nil];
+		_queue = [[NSOperationQueue alloc] init];
+		_queue.maxConcurrentOperationCount = 4;
+		_imageCache = [[NSCache alloc] init];
+		
+		_defaultImages = @[
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wu-tang"],
+				@"name": @"Wu-Tang"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"gza"],
+				@"name": @"GZA/Genius"
+			}
+		];
 		
 		[self setTitle:@"Choose Image"];
 	}
@@ -243,90 +254,172 @@
 												  style:UITableViewStyleGrouped];
 	self.tableView.delegate = self;
 	self.tableView.dataSource = self;
-	self.tableView.rowHeight = 44.0f;
-	
+	self.tableView.rowHeight = 85.0f;
 	self.view = self.tableView;
 }
 
 - (void)viewWillAppear:(BOOL)animated {
 	DebugLog0;
 	[super viewWillAppear:animated];
-	[self scanForMedia];
+	
+//	self.defaultImages = [self scanPathForImages:DEFAULT_IMAGE_PATH];
+//	self.customImages = [self scanPathForImages:CUSTOM_IMAGE_PATH];
+	
+	[self updateUserImageList];
 }
 
-- (void)scanForMedia {
-	DebugLog0;
-	
-	// reset the lists
-//	self.defaultImages = nil;
-//	self.defaultImages = [NSMutableArray array];
-//	self.userImages = nil;
-//	self.userImages = [NSMutableArray array];
-	
-	// scan filesystem
+
+- (void)updateUserImageList {
+	NSMutableArray *results = [NSMutableArray array];
 	
 	NSFileManager *fm = [NSFileManager defaultManager];
-	NSArray *keys = @[NSURLContentModificationDateKey, NSURLFileSizeKey, NSURLNameKey];
+	NSURL *url = [NSURL fileURLWithPath:USER_IMAGES_PATH isDirectory:YES];
+	NSArray *keys = @[NSURLNameKey];
+	NSArray *imageURLs = [fm contentsOfDirectoryAtURL:url
+						   includingPropertiesForKeys:keys
+											  options:NSDirectoryEnumerationSkipsHiddenFiles
+												error:nil];
+	DebugLog(@"Found these files here (%@) >> %@", url, imageURLs);
 	
-	// default image set
-	NSURL *url = [NSURL fileURLWithPath:DEFAULT_IMAGE_PATH isDirectory:YES];
-	NSArray *defaultImages = (NSMutableArray *)[fm contentsOfDirectoryAtURL:url
-												 includingPropertiesForKeys:keys
-																	options:NSDirectoryEnumerationSkipsHiddenFiles
-																	  error:nil];
-	DebugLog(@"Default images (%@): %@", url, defaultImages);
+	// sort results by name
+	[(NSMutableArray *)imageURLs sortUsingComparator:^(NSURL *a, NSURL *b) {
+		NSDate *name1 = [[a resourceValuesForKeys:keys error:nil] objectForKey:NSURLNameKey];
+		NSDate *name2 = [[b resourceValuesForKeys:keys error:nil] objectForKey:NSURLNameKey];
+		return [name2 compare:name1];
+	}];
 	
-	// sort by name
-//	[backgrounds sortUsingComparator:^(NSURL *a, NSURL *b) {
-//		NSDate *date1 = [[a resourceValuesForKeys:keys error:nil] objectForKey:NSURLContentModificationDateKey];
-//		NSDate *date2 = [[b resourceValuesForKeys:keys error:nil] objectForKey:NSURLContentModificationDateKey];
-//		return [date2 compare:date1];
-//	}];
+	// process results...
+	for (NSURL *imageURL in imageURLs) {
+		NSString *path = [imageURL path];
+		
+		// check if file is an image by trying to load it
+		UIImage *testImage = [UIImage imageWithContentsOfFile:[imageURL path]];
+		if (!testImage) {
+			// file is not an image
+		} else {
+			// add to results
+			NSString *filename = [imageURL resourceValuesForKeys:keys error:nil][NSURLNameKey];
+			[results addObject:@{ @"path":path, @"name":filename }];
+		}
+	}
+	DebugLog(@"Results: %@", results);
 	
-//	// add files to list
-//	for (NSURL *bgURL in backgrounds) {
-//		if ([UIImage imageWithContentsOfFile:[bgURL path]]) {
-//			NSString *file = [bgURL resourceValuesForKeys:keys error:nil][NSURLNameKey];
-//			NSString *size = [bgURL resourceValuesForKeys:keys error:nil][NSURLFileSizeKey];
-//			
-//			if ([size floatValue] < 1024*1024) { // < 1MB
-//				size = [NSString stringWithFormat:@"%.0f KB", [size floatValue] / 1024.0f];
-//			} else {
-//				size = [NSString stringWithFormat:@"%.1f MB", [size floatValue] / 1024.0f / 1024.f];
-//			}
-//			
-//			[self.backgrounds addObject:@{ FILE_KEY: file, SIZE_KEY: size }];
-//		} else {
-//			// unsupported image
-//		}
-//	}
-	
+	self.userImages = results;
 }
 
+//
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 	return 2;
 }
-
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
-	NSString *title;
-	switch (section) {
-		case 0: title = @"Default images";
-			break;
-		case 1: title = @"User images";
-			break;
+	if (section == 0) {
+		return @"Default images";
+	} else {
+		return @"User images";
 	}
-	return title;
 }
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-	NSInteger num;
-	switch (section) {
-		case 0: num = self.defaultImages.count;
-			break;
-		case 1: num = self.userImages.count;
-			break;
+	if (section == 0) {
+		return self.defaultImages.count;
+	} else {
+		return self.userImages.count;
 	}
-	return num;
+}
+//- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+//	return 75.0f;
+//}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+	UITableViewCell *cell;
+	
+	static NSString *CustomCellIdentifier = @"CustomCell";
+	cell = [tableView dequeueReusableCellWithIdentifier:CustomCellIdentifier];
+	
+	if (!cell) {
+		// create custom cell layout...
+		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
+									  reuseIdentifier:CustomCellIdentifier];
+		cell.opaque = YES;
+		cell.selectionStyle = UITableViewCellSelectionStyleNone;
+		cell.accessoryType = UITableViewCellAccessoryNone;
+		
+		CGRect frame;
+		
+		// thumbnail
+		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(5, 5, 75, 75)];
+		imageView.opaque = YES;
+		imageView.contentMode = UIViewContentModeScaleAspectFit;
+		imageView.tag = THUMBNAIL_TAG;
+		imageView.backgroundColor = IRON;
+		[cell.contentView addSubview:imageView];
+		
+		// title
+		frame.origin = CGPointMake(100, 5);
+		frame.size.width = cell.contentView.bounds.size.width - frame.origin.x;
+		frame.size.height = 75.0f;
+		UILabel *titleLabel = [[UILabel alloc] initWithFrame:frame];
+		titleLabel.opaque = YES;
+		titleLabel.font = [UIFont boldSystemFontOfSize:20.0];
+		titleLabel.textColor = UIColor.blackColor;
+		titleLabel.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
+		titleLabel.tag = TITLE_TAG;
+		[cell.contentView addSubview:titleLabel];
+	}
+	
+	// add content to cells
+	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
+	UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
+	
+	NSDictionary *imageInfo;
+	if (indexPath.section == 0) {
+		imageInfo = self.defaultImages[indexPath.row];
+	} else {
+		imageInfo = self.userImages[indexPath.row];
+	}
+	
+	NSString *path = imageInfo[@"path"];
+	NSString *name = imageInfo[@"name"];
+	
+	titleLabel.text = name;
+	
+	// try to get thumbnail from the cache, if not found create one...
+	UIImage *thumbnail = [self.imageCache objectForKey:path];
+	if (thumbnail) {
+		DebugLog(@"found image in cache (%@): %@", path, thumbnail);
+		imageView.image = thumbnail;
+	} else {
+		DebugLog(@"didn't find image in cache");
+		[self.queue addOperationWithBlock:^{
+			// load image
+			UIImage *image = [UIImage imageWithContentsOfFile:path];
+			DebugLog(@"tried to load image and got: %@", image);
+			
+			if (image) {
+				// resize ?
+				
+				// add to cache
+				[self.imageCache setObject:image forKey:path];
+				
+				// add thumbnail to cell
+				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
+					UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+					if (cell) {
+						UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
+						imageView.image = image;
+					}
+				}];
+			}
+		}];
+	}
+	
+//	// is checked ?
+//	if ([self.selectedBackground isEqualToString:background[FILE_KEY]]) {
+//		cell.accessoryType = UITableViewCellAccessoryCheckmark;
+//	} else {
+//		cell.accessoryType = UITableViewCellAccessoryNone;
+//	}
+	
+	return cell;
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -334,29 +427,29 @@
 	
 	
 	/*
-	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-	if (cell.accessoryType == UITableViewCellAccessoryCheckmark) {
+	 UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+	 if (cell.accessoryType == UITableViewCellAccessoryCheckmark) {
 		//
 		// de-selected the selected row
 		//
 		cell.accessoryType = UITableViewCellAccessoryNone;
 		
 		if (indexPath.section == VIDEO_SECTION) {
-			self.selectedVideo = ID_NONE;
+	 self.selectedVideo = ID_NONE;
 		} else {
-			self.selectedBackground = ID_NONE;
+	 self.selectedBackground = ID_NONE;
 		}
 		
-	} else {
+	 } else {
 		//
 		// selected a new row
 		//
 		
 		// uncheck old selection
 		for (NSInteger i = 0; i < [tableView numberOfRowsInSection:indexPath.section]; i++) {
-			NSIndexPath	 *path = [NSIndexPath indexPathForRow:i inSection:indexPath.section];
-			UITableViewCell *cell = [tableView cellForRowAtIndexPath:path];
-			cell.accessoryType = UITableViewCellAccessoryNone;
+	 NSIndexPath	 *path = [NSIndexPath indexPathForRow:i inSection:indexPath.section];
+	 UITableViewCell *cell = [tableView cellForRowAtIndexPath:path];
+	 cell.accessoryType = UITableViewCellAccessoryNone;
 		}
 		
 		// check new selection
@@ -367,209 +460,26 @@
 		
 		// save selection
 		if (indexPath.section == VIDEO_SECTION) {
-			if (indexPath.row == 0) {
-				self.selectedVideo = ID_DEFAULT;
-			} else {
-				self.selectedVideo = titleLabel.text;
-			}
-			DebugLog(@"selected video: %@", self.selectedVideo);
-			
+	 if (indexPath.row == 0) {
+	 self.selectedVideo = ID_DEFAULT;
+	 } else {
+	 self.selectedVideo = titleLabel.text;
+	 }
+	 DebugLog(@"selected video: %@", self.selectedVideo);
+	 
 		} else if (indexPath.section == BACKGROUND_SECTION) {
-			if (indexPath.row == 0) {
-				self.selectedBackground = ID_DEFAULT;
-			} else {
-				self.selectedBackground = titleLabel.text;
-			}
-			DebugLog(@" selected background: %@", self.selectedBackground);
+	 if (indexPath.row == 0) {
+	 self.selectedBackground = ID_DEFAULT;
+	 } else {
+	 self.selectedBackground = titleLabel.text;
+	 }
+	 DebugLog(@" selected background: %@", self.selectedBackground);
 		}
-	}
-	*/
+	 }
+	 */
 	
 	//[self savePrefs:YES];
-	[tableView reloadData];
-}
-
-- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	UITableViewCell *cell;
-	
-	//
-	// media item cell
-	//
-	static NSString *CustomCellIdentifier = @"CustomCell";
-	cell = [tableView dequeueReusableCellWithIdentifier:CustomCellIdentifier];
-	
-	if (!cell) {
-		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle
-									  reuseIdentifier:CustomCellIdentifier];
-		cell.opaque = YES;
-		cell.selectionStyle = UITableViewCellSelectionStyleNone;
-		cell.accessoryType = UITableViewCellAccessoryNone;
-		
-//		// thumbnail
-//		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15.0f, 2.0f, 40.0f, 40.0f)];
-//		imageView.opaque = YES;
-//		imageView.contentMode = UIViewContentModeScaleAspectFit;
-//		imageView.tag = THUMBNAIL_TAG;
-//		[cell.contentView addSubview:imageView];
-//		
-//		// title
-//		UILabel *titleLabel = [[UILabel alloc] initWithFrame:CGRectMake(70.0f, 10.0f, 215.0f, 16.0f)];
-//		titleLabel.opaque = YES;
-//		titleLabel.font = [UIFont boldSystemFontOfSize:14.0];
-//		titleLabel.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
-//		titleLabel.tag = TITLE_TAG;
-//		[cell.contentView addSubview:titleLabel];
-//		
-//		// subtitle
-//		UILabel *subtitleLabel = [[UILabel alloc] initWithFrame:CGRectMake(70.0f, 28.0f, 215.0f, 12.0f)];
-//		subtitleLabel.opaque = YES;
-//		subtitleLabel.font = [UIFont italicSystemFontOfSize:10.0];
-//		subtitleLabel.textColor = [UIColor grayColor];
-//		subtitleLabel.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
-//		subtitleLabel.tag = SUBTITLE_TAG;
-//		[cell.contentView addSubview:subtitleLabel];
-	}
-	
-	/*
-	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
-	UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
-	UILabel *subtitleLabel = (UILabel *)[cell.contentView viewWithTag:SUBTITLE_TAG];
-	
-	if (indexPath.section == VIDEO_SECTION) {
-		NSDictionary *video = self.videos[indexPath.row];
-		
-		if (indexPath.row == 0) {
-			//
-			// Default video
-			//
-			titleLabel.text = DEFAULT_VIDEO_TITLE;
-			subtitleLabel.text = @"*Default";
-			NSString *path = [NSString stringWithFormat:@"%@/%@", DEFAULT_PATH, DEFAULT_VIDEO_THUMB];
-			imageView.image = [UIImage imageWithContentsOfFile:path];
-			
-			// checked ?
-			if ([self.selectedVideo isEqualToString:ID_DEFAULT]) {
-				cell.accessoryType = UITableViewCellAccessoryCheckmark;
-			} else {
-				cell.accessoryType = UITableViewCellAccessoryNone;
-			}
-			
-		} else {
-			//
-			// User video
-			//
-			NSString *filename = video[FILE_KEY];
-			titleLabel.text = filename;
-			subtitleLabel.text = video[SIZE_KEY];
-			
-			// get thumbnail from cache, or else load and cache it in the background...
-			
-			UIImage *thumbnail = [self.imageCache objectForKey:filename];
-			
-			if (thumbnail) {
-				imageView.image = thumbnail;
-				
-			} else {
-				[self.queue addOperationWithBlock:^{
-					// load
-					UIImage *image = [self thumbnailForVideo:filename withMaxSize:imageView.bounds.size];
-					
-					if (image) {
-						// add to cache
-						[self.imageCache setObject:image forKey:filename];
-						
-						// update UI on the main thread
-						[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-							UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-							
-							if (cell) {
-								UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
-								imageView.image = image;
-							}
-						}];
-					}
-				}];
-			}
-			
-			// checked ?
-			if ([self.selectedVideo isEqualToString:video[FILE_KEY]]) {
-				cell.accessoryType = UITableViewCellAccessoryCheckmark;
-			} else {
-				cell.accessoryType = UITableViewCellAccessoryNone;
-			}
-		}
-		
-	} else if (indexPath.section == BACKGROUND_SECTION) {
-		NSDictionary *background = self.backgrounds[indexPath.row];
-		
-		if (indexPath.row == 0) {
-			//
-			// Default background
-			//
-			titleLabel.text = DEFAULT_BG_TITLE;
-			subtitleLabel.text = @"*Default";
-			NSString *path = [NSString stringWithFormat:@"%@/%@", DEFAULT_PATH, DEFAULT_BG_THUMB];
-			imageView.image = [UIImage imageWithContentsOfFile:path];
-			
-			// checked ?
-			if ([self.selectedBackground isEqualToString:ID_DEFAULT]) {
-				cell.accessoryType = UITableViewCellAccessoryCheckmark;
-			} else {
-				cell.accessoryType = UITableViewCellAccessoryNone;
-			}
-			
-		} else {
-			//
-			// Custom background
-			//
-			NSString *filename = background[FILE_KEY];
-			titleLabel.text = filename;
-			subtitleLabel.text = background[SIZE_KEY];
-			
-			// get thumbnail from cache, or else load and cache it in the background...
-			
-			UIImage *thumbnail = [self.imageCache objectForKey:filename];
-			
-			if (thumbnail) {
-				imageView.image = thumbnail;
-				
-			} else {
-				[self.queue addOperationWithBlock:^{
-					// load
-					NSString *path = [NSString stringWithFormat:@"%@/%@", USER_BGS_PATH, filename];
-					UIImage *image = [UIImage imageWithContentsOfFile:path];
-					
-					if (image) {
-						image = [UIImage imageWithImage:image scaledToMaxWidth:imageView.bounds.size.height
-											  maxHeight:imageView.bounds.size.height];
-						
-						// add to cache
-						[self.imageCache setObject:image forKey:filename];
-						
-						// update UI on main thread
-						[[NSOperationQueue mainQueue] addOperationWithBlock:^{
-							UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-							
-							if (cell) {
-								UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
-								imageView.image = image;
-							}
-						}];
-					}
-				}];
-			}
-			
-			// is checked ?
-			if ([self.selectedBackground isEqualToString:background[FILE_KEY]]) {
-				cell.accessoryType = UITableViewCellAccessoryCheckmark;
-			} else {
-				cell.accessoryType = UITableViewCellAccessoryNone;
-			}
-		}
-	}
-	*/
-	
-	return cell;
+	//[tableView reloadData];
 }
 
 @end
