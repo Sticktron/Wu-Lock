@@ -27,6 +27,45 @@
 
 
 
+// helpers
+@implementation UIImage (Private)
+
+// Resize UIImage to new dimensions.
++ (UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)size {
+	DebugLogC(@"resizing image (%@) to size: (%fx%f)", image, size.width, size.height);
+	
+	BOOL opaque = NO;
+	
+	if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
+		// In next line, pass 0.0 to use the current device's pixel scaling factor.
+		// Pass 1.0 to force exact pixel size.
+		UIGraphicsBeginImageContextWithOptions(size, opaque, 0);
+	} else {
+		UIGraphicsBeginImageContext(size);
+	}
+	[image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+	UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	
+	return newImage;
+}
+
+// Resize UIImage to fit within new dimensions.
++ (UIImage *)imageWithImage:(UIImage *)image scaledToFitSize:(CGSize)size {
+	DebugLogC(@"resizing image (%@) to fit box: (%fx%f)", image, size.width, size.height);
+	
+	CGFloat oldWidth = image.size.width;
+	CGFloat oldHeight = image.size.height;
+	
+	CGFloat scaleFactor = (oldWidth > oldHeight) ? size.width / oldWidth : size.height / oldHeight;
+	CGSize newSize = CGSizeMake(oldWidth * scaleFactor, oldHeight * scaleFactor);
+	
+	return [self imageWithImage:image scaledToSize:newSize];
+}
+@end
+
+
+
 // Header cell.
 
 @interface WULogoCell : PSTableCell
@@ -381,15 +420,8 @@
 		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 5, 64, 64)];
 		imageView.opaque = YES;
 		imageView.contentMode = UIViewContentModeScaleAspectFit;
-		//imageView.layer.borderColor = IRON.CGColor;
-		//imageView.layer.borderWidth = 1;
-		
-		// thumbnail bg
 		UIImage *bgTile = [UIImage imageWithContentsOfFile:TILE_BG_PATH];
 		imageView.backgroundColor = [UIColor colorWithPatternImage:bgTile];
-		//imageView.backgroundColor = UIColor.whiteColor;
-		//imageView.backgroundColor = WU_YELLOW;
-
 		imageView.tag = THUMBNAIL_TAG;
 		[cell.contentView addSubview:imageView];
 		
@@ -408,6 +440,7 @@
 	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
 	UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
 	
+	// get image info
 	NSDictionary *imageInfo;
 	if (indexPath.section == 0) {
 		imageInfo = self.defaultImages[indexPath.row];
@@ -417,15 +450,7 @@
 	
 	titleLabel.text = imageInfo[@"name"];
 	
-//	// set thumbnail bg color
-//	if (indexPath.section == 0) {
-//		imageView.backgroundColor = WU_YELLOW;
-//	} else {
-//		UIImage *bgTile = [UIImage imageWithContentsOfFile:TILE_BG_PATH];
-//		imageView.backgroundColor = [UIColor colorWithPatternImage:bgTile];
-//	}
-	
-	// get image from cache, or load and add to cache...
+	// get thumbnail from cache, or create and cache new one...
 	NSString *path = imageInfo[@"path"];
 	UIImage *thumbnail = [self.imageCache objectForKey:path];
 	
@@ -440,17 +465,19 @@
 			DebugLog(@"tried to load image and got: %@", image);
 			
 			if (image) {
-				// resize ?
+				// create and cache thumbnail
+				CGSize size = imageView.frame.size;
+				UIImage *thumb = [UIImage imageWithImage:image scaledToFitSize:size];
+				DebugLog(@"created thumbnail: %@", thumb);
+				[self.imageCache setObject:thumb forKey:path];
+				DebugLog(@"cached with key: %@", path);
 				
-				// add to cache
-				[self.imageCache setObject:image forKey:path];
-				
-				// add image to cell
+				// add thumbnail to cell
 				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
 					UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 					if (cell) {
 						UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
-						imageView.image = image;
+						imageView.image = thumb;
 					}
 				}];
 			}
@@ -493,8 +520,11 @@
 		DebugLog(@"selected image: %@", self.selectedImage);
 	}
 	
-	//[self savePrefs:YES];
 	[tableView reloadData];
+	
+	// save new setting
+	CFPreferencesSetAppValue(CFSTR("Image"), (CFStringRef)self.selectedImage, CFSTR("com.sticktron.wulock"));
+	CFPreferencesAppSynchronize(CFSTR("com.sticktron.wulock"));
 }
 @end
 
