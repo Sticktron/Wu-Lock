@@ -67,6 +67,7 @@
 			<array>
 				<string>White</string>
 				<string>Black</string>
+				<string>Yellow</string>
 				<string>Vibrant blur</string>
 				<string>Burnt blur</string>
 				<string>Original</string>
@@ -76,6 +77,7 @@
 			<array>
 				<string>white</string>
 				<string>black</string>
+				<string>yellow</string>
 				<string>vibrantblur</string>
 				<string>burntblur</string>
 				<string>original</string>
@@ -329,7 +331,7 @@
 			<string>openGitHub</string>
 		</dict>
 		
-		<!-- website -->
+		<!-- sticktron.com -->
 		<dict>
 			<key>cell</key>
 			<string>PSButtonCell</string>
@@ -340,7 +342,7 @@
 			<key>icon</key>
 			<string>www.png</string>
 			<key>action</key>
-			<string>openWebsite</string>
+			<string>openSticktronWeb</string>
 		</dict>
 		
 		<!-- /r/jailbreak -->
@@ -369,6 +371,61 @@
 			<string>wikipedia.png</string>
 			<key>action</key>
 			<string>openWikipedia</string>
+		</dict>
+		
+		<!-- Wu-Tang website -->
+		<dict>
+			<key>cell</key>
+			<string>PSButtonCell</string>
+			<key>cellClass</key>
+			<string>WUButtonCell</string>
+			<key>label</key>
+			<string>Official Wu-Tang website</string>
+			<key>icon</key>
+			<string>icon.png</string>
+			<key>action</key>
+			<string>openWuTangClanWeb</string>
+		</dict>
+		
+		
+		
+		<!-- [] HELP -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Help</string>
+			<key>footerText</key>
+			<string>To add your own images to the list, copy them to the following folder on your device:
+/Library/Application Support/Wu-Lock/Custom
+
+Files can be copied from your computer over USB using a free program like iFunBox, or over WiFi using SCP or an SFTP client.
+
+Files must be a type that iOS supports, such as: PNG, GIF, JPG.
+
+There is no shape or size requirement for images, so experiment away.
+</string>
+		</dict>
+		
+		
+		
+		<!-- [] Notes -->
+		<dict>
+			<key>cell</key>
+			<string>PSGroupCell</string>
+			<key>label</key>
+			<string>Notes</string>
+			<key>footerText</key>
+			<string>Peace to the Wu-Tang Clan, Hip-Hop legends and cultural icons, celebrating their 20th anniversary!
+
+Wu-Tang Clan are: RZA, GZA/Genius, (the late) ODB, Ghostface Killah, Method Man, Raekwon, U-God, Masta Killa and Inspectah Deck.
+
+Thanks to whoever drew the source material I used for the glyphs.
+
+(c) Sticktron 2015.
+
+😈
+</string>
 		</dict>
 		
 		

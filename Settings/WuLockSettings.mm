@@ -14,16 +14,16 @@
 #import <Preferences/PSSwitchTableCell.h>
 
 
-#define HEADER_PATH				@"/Library/PreferenceBundles/WuLockSettings.bundle/header.png"
-#define DEFAULT_IMAGES_PATH		@"/Library/Application Support/Wu-Lock"
-#define USER_IMAGES_PATH			[NSHomeDirectory() stringByAppendingPathComponent:@"Media/Wu-Lock"]
+#define HEADER_PATH					@"/Library/PreferenceBundles/WuLockSettings.bundle/header.png"
+#define TILE_BG_PATH				@"/Library/PreferenceBundles/WuLockSettings.bundle/tile.png"
+#define DEFAULT_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Default"
+#define USER_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Custom"
 
 #define WU_YELLOW					[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
 #define IRON						[UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1]
 
 #define THUMBNAIL_TAG				1
 #define TITLE_TAG					2
-#define SUBTITLE_TAG				3
 
 
 
@@ -50,7 +50,7 @@
 	return self;
 }
 - (CGFloat)preferredHeightForWidth:(CGFloat)height {
-	return 150.0f;
+	return 130.0f;
 }
 - (void)layoutSubviews {
 	[super layoutSubviews];
@@ -107,7 +107,6 @@
 @end
 
 @implementation WuLockSettingsController
-
 - (id)initForContentSize:(CGSize)size {
 	DebugLog0;
 	
@@ -166,18 +165,6 @@
 - (void)openEmail {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:sticktron@hotmail.com"]];
 }
-- (void)openGitHub {
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://github.com/Sticktron/"]];
-}
-- (void)openWebsite {
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.sticktron.com"]];
-}
-- (void)openWikipedia {
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.wikipedia.org/wiki/Wu-Tang_Clan"]];
-}
-- (void)openReddit {
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://reddit.com/r/jailbreak"]];
-}
 - (void)openTwitter {
 	NSURL *url;
 	
@@ -185,26 +172,40 @@
 	if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tweetbot:"]]) {
 		url = [NSURL URLWithString:@"tweetbot:///user_profile/sticktron"];
 		
-	// try Twitterrific
+		// try Twitterrific
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitterrific:"]]) {
 		url = [NSURL URLWithString:@"twitterrific:///profile?screen_name=sticktron"];
 		
-	// try Tweetings
+		// try Tweetings
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tweetings:"]]) {
 		url = [NSURL URLWithString:@"tweetings:///user?screen_name=sticktron"];
 		
-	// try Twitter
+		// try Twitter
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter:"]]) {
 		url = [NSURL URLWithString:@"twitter://user?screen_name=sticktron"];
 		
-	// else use Safari
+		// else use Safari
 	} else {
 		url = [NSURL URLWithString:@"http://twitter.com/sticktron"];
 	}
 	
 	[[UIApplication sharedApplication] openURL:url];
 }
-
+- (void)openGitHub {
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://github.com/Sticktron/"]];
+}
+- (void)openSticktronWeb {
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.sticktron.com"]];
+}
+- (void)openReddit {
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://reddit.com/r/jailbreak"]];
+}
+- (void)openWikipedia {
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.wikipedia.org/wiki/Wu-Tang_Clan"]];
+}
+- (void)openWuTangClanWeb {
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.wutangclan.com"]];
+}
 @end
 
 
@@ -220,9 +221,7 @@
 @property (nonatomic, strong) NSCache *imageCache;
 @end
 
-
 @implementation WUImageController
-
 - (instancetype)init {
 	self = [super init];
 	
@@ -235,12 +234,56 @@
 		
 		_defaultImages = @[
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wu-tang"],
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"w.png"],
+				@"name": @"W"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wutang.png"],
 				@"name": @"Wu-Tang"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"gza"],
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wutangclan.png"],
+				@"name": @"Wu-Tang Clan"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"gza.png"],
 				@"name": @"GZA/Genius"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"rza.png"],
+				@"name": @"RZA"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"raekwon.png"],
+				@"name": @"Raekwon"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ugod.png"],
+				@"name": @"U-God"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"methodman.png"],
+				@"name": @"Method Man"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"methodman2.png"],
+				@"name": @"Method Man"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"mastakilla.png"],
+				@"name": @"Masta Killa"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ins.png"],
+				@"name": @"Inspectah Deck"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"odb.png"],
+				@"name": @"Ol' Dirty Bastard"
+			},
+			@{
+				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ghostface.png"],
+				@"name": @"Ghostface Killah"
 			}
 		];
 		
@@ -248,16 +291,14 @@
 	}
 	return self;
 }
-
 - (void)loadView {
 	self.tableView = [[UITableView alloc] initWithFrame:[[UIScreen mainScreen] applicationFrame]
 												  style:UITableViewStyleGrouped];
 	self.tableView.delegate = self;
 	self.tableView.dataSource = self;
-	self.tableView.rowHeight = 85.0f;
+	self.tableView.rowHeight = 74.0f;
 	self.view = self.tableView;
 }
-
 - (void)viewWillAppear:(BOOL)animated {
 	DebugLog0;
 	[super viewWillAppear:animated];
@@ -267,8 +308,6 @@
 	
 	[self updateUserImageList];
 }
-
-
 - (void)updateUserImageList {
 	NSMutableArray *results = [NSMutableArray array];
 	
@@ -306,7 +345,6 @@
 	
 	self.userImages = results;
 }
-
 //
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 	return 2;
@@ -325,10 +363,6 @@
 		return self.userImages.count;
 	}
 }
-//- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
-//	return 75.0f;
-//}
-
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
 	UITableViewCell *cell;
 	
@@ -343,23 +377,27 @@
 		cell.selectionStyle = UITableViewCellSelectionStyleNone;
 		cell.accessoryType = UITableViewCellAccessoryNone;
 		
-		CGRect frame;
-		
 		// thumbnail
-		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(5, 5, 75, 75)];
+		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 5, 64, 64)];
 		imageView.opaque = YES;
 		imageView.contentMode = UIViewContentModeScaleAspectFit;
+		//imageView.layer.borderColor = IRON.CGColor;
+		//imageView.layer.borderWidth = 1;
+		
+		// thumbnail bg
+		UIImage *bgTile = [UIImage imageWithContentsOfFile:TILE_BG_PATH];
+		imageView.backgroundColor = [UIColor colorWithPatternImage:bgTile];
+		//imageView.backgroundColor = UIColor.whiteColor;
+		//imageView.backgroundColor = WU_YELLOW;
+
 		imageView.tag = THUMBNAIL_TAG;
-		imageView.backgroundColor = IRON;
 		[cell.contentView addSubview:imageView];
 		
 		// title
-		frame.origin = CGPointMake(100, 5);
-		frame.size.width = cell.contentView.bounds.size.width - frame.origin.x;
-		frame.size.height = 75.0f;
+		CGRect frame = CGRectMake(94, 5, cell.contentView.bounds.size.width - 94, 64);
 		UILabel *titleLabel = [[UILabel alloc] initWithFrame:frame];
 		titleLabel.opaque = YES;
-		titleLabel.font = [UIFont boldSystemFontOfSize:20.0];
+		titleLabel.font = [UIFont boldSystemFontOfSize:16];
 		titleLabel.textColor = UIColor.blackColor;
 		titleLabel.autoresizingMask = UIViewAutoresizingFlexibleRightMargin;
 		titleLabel.tag = TITLE_TAG;
@@ -377,13 +415,20 @@
 		imageInfo = self.userImages[indexPath.row];
 	}
 	
+	titleLabel.text = imageInfo[@"name"];
+	
+//	// set thumbnail bg color
+//	if (indexPath.section == 0) {
+//		imageView.backgroundColor = WU_YELLOW;
+//	} else {
+//		UIImage *bgTile = [UIImage imageWithContentsOfFile:TILE_BG_PATH];
+//		imageView.backgroundColor = [UIColor colorWithPatternImage:bgTile];
+//	}
+	
+	// get image from cache, or load and add to cache...
 	NSString *path = imageInfo[@"path"];
-	NSString *name = imageInfo[@"name"];
-	
-	titleLabel.text = name;
-	
-	// try to get thumbnail from the cache, if not found create one...
 	UIImage *thumbnail = [self.imageCache objectForKey:path];
+	
 	if (thumbnail) {
 		DebugLog(@"found image in cache (%@): %@", path, thumbnail);
 		imageView.image = thumbnail;
@@ -400,7 +445,7 @@
 				// add to cache
 				[self.imageCache setObject:image forKey:path];
 				
-				// add thumbnail to cell
+				// add image to cell
 				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
 					UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 					if (cell) {
@@ -412,76 +457,45 @@
 		}];
 	}
 	
-//	// is checked ?
-//	if ([self.selectedBackground isEqualToString:background[FILE_KEY]]) {
-//		cell.accessoryType = UITableViewCellAccessoryCheckmark;
-//	} else {
-//		cell.accessoryType = UITableViewCellAccessoryNone;
-//	}
+	// is checked?
+	if ([self.selectedImage isEqualToString:path]) {
+		cell.accessoryType = UITableViewCellAccessoryCheckmark;
+	} else {
+		cell.accessoryType = UITableViewCellAccessoryNone;
+	}
 	
 	return cell;
 }
-
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	DebugLog(@"User selected row: %ld, section: %ld", (long)indexPath.row, (long)indexPath.section);
+	DebugLog(@"User selected section: %ld, row: %ld", (long)indexPath.section, (long)indexPath.row);
 	
-	
-	/*
-	 UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-	 if (cell.accessoryType == UITableViewCellAccessoryCheckmark) {
-		//
-		// de-selected the selected row
-		//
-		cell.accessoryType = UITableViewCellAccessoryNone;
+	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+	if (cell.accessoryType == UITableViewCellAccessoryCheckmark) {
+		// cell is already selected
+	} else {
+		// un-check old cell
+		UITableViewCell *oldCell = [tableView cellForRowAtIndexPath:[tableView indexPathForSelectedRow]];
+		oldCell.accessoryType = UITableViewCellAccessoryNone;
 		
-		if (indexPath.section == VIDEO_SECTION) {
-	 self.selectedVideo = ID_NONE;
-		} else {
-	 self.selectedBackground = ID_NONE;
-		}
-		
-	 } else {
-		//
-		// selected a new row
-		//
-		
-		// uncheck old selection
-		for (NSInteger i = 0; i < [tableView numberOfRowsInSection:indexPath.section]; i++) {
-	 NSIndexPath	 *path = [NSIndexPath indexPathForRow:i inSection:indexPath.section];
-	 UITableViewCell *cell = [tableView cellForRowAtIndexPath:path];
-	 cell.accessoryType = UITableViewCellAccessoryNone;
-		}
-		
-		// check new selection
+		// check new cell
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 		
-		// get the file name
-		UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
+		// get the image info for the cell
+		NSDictionary *imageInfo;
+		if (indexPath.section == 0) {
+			imageInfo = self.defaultImages[indexPath.row];
+		} else {
+			imageInfo = self.userImages[indexPath.row];
+		}
 		
 		// save selection
-		if (indexPath.section == VIDEO_SECTION) {
-	 if (indexPath.row == 0) {
-	 self.selectedVideo = ID_DEFAULT;
-	 } else {
-	 self.selectedVideo = titleLabel.text;
-	 }
-	 DebugLog(@"selected video: %@", self.selectedVideo);
-	 
-		} else if (indexPath.section == BACKGROUND_SECTION) {
-	 if (indexPath.row == 0) {
-	 self.selectedBackground = ID_DEFAULT;
-	 } else {
-	 self.selectedBackground = titleLabel.text;
-	 }
-	 DebugLog(@" selected background: %@", self.selectedBackground);
-		}
-	 }
-	 */
+		self.selectedImage = imageInfo[@"path"];
+		DebugLog(@"selected image: %@", self.selectedImage);
+	}
 	
 	//[self savePrefs:YES];
-	//[tableView reloadData];
+	[tableView reloadData];
 }
-
 @end
 
 

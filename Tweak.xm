@@ -52,13 +52,21 @@
 - (id)backdropViewLayer;
 @end
 
+@interface UIColor (Private)
++ (id)_vibrantDarkFillDodgeColor;
++ (id)_vibrantLightFillDarkeningColor;
++ (id)_vibrantLightFillBurnColor;
++ (id)_vibrantLightDividerDarkeningColor;
++ (id)_vibrantLightDividerBurnColor;
+@end
+
 
 
 
 
 #define MARGIN_BOTTOM		105.0f
-#define PATH_TO_GLYPHS		@"/Library/Application Support/WuLock/Default"
-#define DEFAULT_GLYPH		@"wu-tang.png"
+#define PATH_TO_GLYPHS		@"/Library/Application Support/Wu-Lock/Default"
+#define DEFAULT_GLYPH		@"wutang.png"
 
 static BOOL enabled;
 static BOOL showSlideTextImmediately;
@@ -140,12 +148,16 @@ static BOOL showSlideTextImmediately;
 		float y = screenRect.size.height - MARGIN_BOTTOM - (image.size.height/2);
 		glyphView2.center = (CGPoint){x, y};
 		
+		
 		// add the image on top of the backdrop
 		//UIImageView *glyphView1 = [[UIImageView alloc] initWithImage:image];
 		UIImageView *glyphView1 = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-		glyphView1.tintColor = [UIColor colorWithWhite:0.1 alpha:1];
-		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeOverlay];
+		glyphView1.tintColor = [UIColor colorWithWhite:1 alpha:0.2];
+		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
 		
+//		glyphView1.tintColor = [UIColor _vibrantDarkFillDodgeColor];
+//		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+
 		[glyphView2.contentView addSubview:glyphView1];
 		[glyphView1 release];
 		
