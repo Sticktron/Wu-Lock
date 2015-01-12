@@ -1,13 +1,12 @@
 ARCHS = armv7 arm64
-TARGET = iphone:clang:latest:7.0
+TARGET = iphone:clang:latest:8.0
 
-
-BUNDLE_NAME = WuLockSettings
-WuLockSettings_CFLAGS = -fobjc-arc
-WuLockSettings_FILES = WuLockSettings.mm
-WuLockSettings_INSTALL_PATH = /Library/PreferenceBundles
-WuLockSettings_FRAMEWORKS = UIKit CoreGraphics
-WuLockSettings_PRIVATE_FRAMEWORKS = Preferences
+BUNDLE_NAME = Wu-Lock
+Wu-Lock_CFLAGS = -fobjc-arc
+Wu-Lock_FILES = WuLockSettings.mm
+Wu-Lock_INSTALL_PATH = /Library/PreferenceBundles
+Wu-Lock_FRAMEWORKS = UIKit CoreGraphics
+Wu-Lock_PRIVATE_FRAMEWORKS = Preferences
 
 include theos/makefiles/common.mk
 include $(THEOS_MAKE_PATH)/bundle.mk

@@ -1,10 +1,10 @@
-Package: com.sticktron.wulock
+Package: com.sticktron.wu-lock
 Name: Wu-Lock
-Version: 0.0.2
+Version: 0.0.3
 Architecture: iphoneos-arm
 Pre-Depends: firmware (>= 8.0)
 Depends: mobilesubstrate
-Description: Customizable Lock Glyph
-Icon: file:///Library/PreferenceBundles/WuLockSettings.bundle/icon@2x.png
+Description: Custom lock glyphs for the children!
+Icon: file:///Library/PreferenceBundles/Wu-LockSettings.bundle/icon@2x.png
 Author: Sticktron <sticktron@hotmail.com>
 Section: Tweaks

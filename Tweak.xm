@@ -3,15 +3,129 @@
 //  Custom lock glyphs for the children.
 //
 //  Created by Sticktron.
-//  Copyright (c) 2014. All rights reserved.
+//  Copyright (c) 2015. All rights reserved.
 //
 //
 
-#define DEBUG_PREFIX @"Wu-Lock"
+#define DEBUG_PREFIX @"[Wu-Lock]"
 #import "DebugLog.h"
 
 #import <UIKit/UIKit.h>
 
+
+// Constants.
+
+static const float kMarginBottom = 110.0f;
+static NSString * const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
+
+static CFStringRef const kPrefsAppID = CFSTR("com.sticktron.wu-lock");
+static NSString *const kPrefsEnabledKey = @"Enabled";
+static NSString *const kPrefsSelectedGlyphKey = @"SelectedGlyph";
+static NSString *const kPrefsStyleKey = @"Style";
+static NSString *const kPrefsYOffsetKey = @"YOffset";
+static NSString *const kPrefsNoDelayKey = @"NoDelay";
+static NSString *const kPrefsHideChevronKey = @"HideChevron";
+static NSString *const kPrefsUseCustomTextKey = @"UseCustomText";
+static NSString *const kPrefsCustomTextKey = @"CustomText";
+static NSString *const kPrefsUseCustomBioTextKey = @"UseCustomBioText";
+static NSString *const kPrefsCustomBioTextKey = @"CustomBioText";
+static NSString *const kPrefsDimTimeoutKey = @"DimTimeout";
+
+
+
+// Globals.
+
+static BOOL enabled;
+static NSString *selectedGlyph;
+static NSString *style;
+static float yOffset;
+static BOOL noDelay;
+static BOOL hideChevron;
+static BOOL useCustomText;
+static NSString *customText;
+static BOOL useCustomBioText;
+static NSString *customBioText;
+static int dimTimeout;
+
+
+
+// Helpers.
+
+static inline void loadSettings() {
+	DebugLogC(@"loadSettings() called.");
+	
+	NSDictionary *settings = nil;
+	
+	CFPreferencesAppSynchronize(kPrefsAppID);
+	CFArrayRef keyList = CFPreferencesCopyKeyList(kPrefsAppID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+	if (keyList) {
+		settings = (NSDictionary *)CFBridgingRelease(CFPreferencesCopyMultiple(keyList, kPrefsAppID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost));
+		DebugLogC(@"Got user settings from Prefs: %@", settings);
+		CFRelease(keyList);
+	} else {
+		DebugLogC(@"Error getting key list from Prefs!");
+	}
+	
+	DebugLogC(@"Settings are now...");
+	
+	enabled = settings[kPrefsEnabledKey] ? [settings[kPrefsEnabledKey] boolValue] : YES;
+	DebugLogC(@"enabled=%d", enabled);
+	
+	selectedGlyph = settings[kPrefsSelectedGlyphKey] ? settings[kPrefsSelectedGlyphKey] : kDefaultGlyph;
+	DebugLogC(@"selectedGlyph=%@", selectedGlyph);
+	
+	style = settings[kPrefsStyleKey] ? settings[kPrefsStyleKey] : @"vibrantBlur";
+	DebugLogC(@"style=%@", style);
+	
+	yOffset = settings[kPrefsYOffsetKey] ? [settings[kPrefsYOffsetKey] floatValue] : 0;
+	DebugLogC(@"yOffset=%f", yOffset);
+	
+	noDelay = settings[kPrefsNoDelayKey] ? [settings[kPrefsNoDelayKey] boolValue] : YES;
+	DebugLogC(@"noDelay=%d", noDelay);
+	
+	hideChevron = settings[kPrefsHideChevronKey] ? [settings[kPrefsHideChevronKey] boolValue] : YES;
+	DebugLogC(@"hideChevron=%d", hideChevron);
+	
+	useCustomText = settings[kPrefsUseCustomTextKey] ? [settings[kPrefsUseCustomTextKey] boolValue] : YES;
+	DebugLogC(@"useCustomText=%d", useCustomText);
+	
+	customText = settings[kPrefsCustomTextKey] ? settings[kPrefsCustomTextKey] : @"Protect ya neck";
+	DebugLogC(@"customText=%@", customText);
+	
+	useCustomBioText = settings[kPrefsUseCustomBioTextKey] ? [settings[kPrefsUseCustomBioTextKey] boolValue] : YES;
+	DebugLogC(@"useCustomBioText=%d", useCustomBioText);
+	
+	customBioText = settings[kPrefsCustomBioTextKey] ? settings[kPrefsCustomBioTextKey] : @"Shame on a finga";
+	DebugLogC(@"customBioText=%@", customBioText);
+	
+	dimTimeout = settings[kPrefsDimTimeoutKey] ? [settings[kPrefsDimTimeoutKey] intValue] : 8;
+	DebugLogC(@"dimTimeout=%d", dimTimeout);
+}
+
+static inline void reloadSettings(CFNotificationCenterRef center, void *observer, CFStringRef name,
+								  const void *object, CFDictionaryRef userInfo) {
+	DebugLogC(@"***** Got a Settings Changed notification *****");
+	loadSettings();
+}
+
+@implementation UIImage (Private)
++ (UIImage *)imageWithCorrectedScale:(UIImage *)image {
+	BOOL opaque = NO;
+	CGSize size = image.size;
+	
+	UIGraphicsBeginImageContextWithOptions(size, opaque, 0);
+	[image drawInRect:CGRectMake(0, 0, size.width, size.height)];
+	
+	UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+	UIGraphicsEndImageContext();
+	
+	return newImage;
+}
+@end
+
+
+
+// Private interfaces.
 
 @interface SBBacklightController : NSObject
 - (void)_lockScreenDimTimerFired;
@@ -62,28 +176,22 @@
 
 
 
-
-
-#define MARGIN_BOTTOM		105.0f
-#define PATH_TO_GLYPHS		@"/Library/Application Support/Wu-Lock/Default"
-#define DEFAULT_GLYPH		@"wutang.png"
-
-static BOOL enabled;
-static BOOL showSlideTextImmediately;
-
-
+// Hooks.
 
 %hook SBBacklightController
 - (double)defaultLockScreenDimInterval {
-	// default is 8 seconds
-	return 120;
+	if (enabled) {
+		return dimTimeout;
+	} else {
+		return %orig; // 8 seconds
+	}
 }
 %end
 
 
 %hook SBLockScreenView
 - (void)_startAnimatingSlideToUnlockWithDelay:(double)delay {
-	if (showSlideTextImmediately) {
+	if (enabled && noDelay) {
 		%orig(0);
 	} else {
 		%orig;
@@ -93,85 +201,113 @@ static BOOL showSlideTextImmediately;
 
 
 %hook SBLockScreenScrollView
-
 - (id)initWithFrame:(CGRect)frame {
 	DebugLog0;
 	
+	if (!enabled) return %orig;
+	
 	if ((self = %orig)) {
+		DebugLog(@"Creating glyph for: selectedGlyph=%@", selectedGlyph);
 		
 		// load image
-		NSString *path = [PATH_TO_GLYPHS stringByAppendingPathComponent:DEFAULT_GLYPH];
-		UIImage *image = [[UIImage alloc] initWithContentsOfFile:path];
-		DebugLog(@"loaded image (%@); size=%@", path, NSStringFromCGSize(image.size));
+		UIImage *image = [[UIImage alloc] initWithContentsOfFile:selectedGlyph];
+		if (image) {
+			DebugLog(@"loaded image with size=%@ and scale=%f", NSStringFromCGSize(image.size), image.scale);
+			
+			// custom images may not have @2x/@3x suffixes,
+			// so let's manually match them to screen scale
+			if (image.scale != [UIScreen mainScreen].scale) {
+				DebugLog(@"image needs scale adjusted!");
+				//image = [UIImage imageWithCorrectedScale:image];
+				
+				image = [[UIImage alloc] initWithCGImage:image.CGImage
+												   scale:[UIScreen mainScreen].scale
+											 orientation:UIImageOrientationUp];
+				
+				DebugLog(@"image now has size: %@ and scale: %f", NSStringFromCGSize(image.size), image.scale);
+			}
+		} else {
+			DebugLog(@"image not found :(");
+			// TODO: do something?
+		}
 		
 		
-//		// test one ////////
-//		
-//		UIImageView *glyphView1 = [[UIImageView alloc]
-//								   initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-//		
-//		CGRect screenRect = [UIScreen mainScreen].bounds;
-//		float x = screenRect.size.width + CGRectGetMidX(screenRect);
-//		float y = screenRect.size.height - kMarginBottom - CGRectGetMidY(glyphView1.frame);
-//		glyphView1.center = (CGPoint){x, y};
-//		
-//		glyphView1.tintColor = [UIColor colorWithWhite:0.65 alpha:1];
-//		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeOverlay];
-//		//[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-//		
-//		
-//		[self addSubview:glyphView1];
-//		[glyphView1 release];
+		// Style Selecta ...
+/*
+
+ //@"white";
+ //@"black";
+ //@"yellow";
+ //@"vibrantBlur";
+ //@"burntBlur";
+ //@"original";
+
+ 
+ 		if ([style isEqualTo:kWUStyleWhite] || [style isEqualTo:kWUStyleBlack] || [style isEqualTo:kWUStyleYellow]) {
+			// flat color styles
+		}
+*/
 		
-		
-		
-		
-		// test two ////////
+		// create blur view
 		CGRect frame = (CGRect){{0, 0}, image.size};
-		_UIBackdropView *glyphView2 = [[_UIBackdropView alloc] initWithFrame:frame style:3900];
-		//_UIBackdropView *glyphView2 = [[_UIBackdropView alloc] initWithFrame:frame style:2060];
+		_UIBackdropView *glyphBlurView = [[_UIBackdropView alloc] initWithFrame:frame style:3900];
+		//_UIBackdropView *glyphBlurView = [[_UIBackdropView alloc] initWithFrame:frame style:2060];
 		
-//		glyphView2.layer.borderColor = UIColor.whiteColor.CGColor;
-//		glyphView2.layer.borderWidth = 1.0f;
-		
-		
-		// set up mask
+		// create mask
 		CALayer *maskLayer = [CALayer layer];
-		maskLayer.frame = glyphView2.bounds;
+		maskLayer.frame = glyphBlurView.bounds;
 		maskLayer.contents = (id)image.CGImage;
-		glyphView2.layer.mask = maskLayer;
+		glyphBlurView.layer.mask = maskLayer;
 		
-		
-		// position
+		// set position
 		CGRect screenRect = [UIScreen mainScreen].bounds;
 		float x = screenRect.size.width + CGRectGetMidX(screenRect);
-		float y = screenRect.size.height - MARGIN_BOTTOM - (image.size.height/2);
-		glyphView2.center = (CGPoint){x, y};
+		float y = screenRect.size.height - kMarginBottom - (image.size.height/2.0) - yOffset;
+		glyphBlurView.center = (CGPoint){x, y};
+		
+		// some styles require a second layer of glyph...
+		
+//		//UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:image];
+//		UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+//		glyphImageView.tintColor = [UIColor colorWithWhite:1 alpha:0.2];
+//		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+//		
+//		//		glyphImageView.tintColor = [UIColor _vibrantDarkFillDodgeColor];
+//		//		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+		
+//		[glyphBlurView.contentView addSubview:glyphImageView];
+//		[glyphImageView release];
+		
+		[self addSubview:glyphBlurView];
 		
 		
-		// add the image on top of the backdrop
-		//UIImageView *glyphView1 = [[UIImageView alloc] initWithImage:image];
-		UIImageView *glyphView1 = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-		glyphView1.tintColor = [UIColor colorWithWhite:1 alpha:0.2];
-		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
 		
-//		glyphView1.tintColor = [UIColor _vibrantDarkFillDodgeColor];
-//		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-
-		[glyphView2.contentView addSubview:glyphView1];
-		[glyphView1 release];
-		
-		[self addSubview:glyphView2];
-		[glyphView2 release];
-		
-		
-//		_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
-
-		[image release];
+	//		// test stuff ////////
+	//
+	//		_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
+	//
+	//
+	//		UIImageView *glyphView1 = [[UIImageView alloc]
+	//								   initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+	//		
+	//		CGRect screenRect = [UIScreen mainScreen].bounds;
+	//		float x = screenRect.size.width + CGRectGetMidX(screenRect);
+	//		float y = screenRect.size.height - kMarginBottom - CGRectGetMidY(glyphView1.frame);
+	//		glyphView1.center = (CGPoint){x, y};
+	//		
+	//		glyphView1.tintColor = [UIColor colorWithWhite:0.65 alpha:1];
+	//		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeOverlay];
+	//		//[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+	//		
+	//		
+	//		[self addSubview:glyphView1];
+	//		[glyphView1 release];
+	
 	}
 	return self;
 }
 
+/*
 - (void)willMoveToWindow:(id)arg1 {
 	DebugLog(@"arg1=%@", arg1);
 	%orig;
@@ -181,7 +317,7 @@ static BOOL showSlideTextImmediately;
 	DebugLog0;
 	%orig;
 }
-
+*/
 
 /*
 - (void)layoutSubviews {
@@ -211,47 +347,22 @@ static BOOL showSlideTextImmediately;
 
 
 
-
-//	if (!wuView) {
-//		wuView = YES;
-//		DebugLog(@"creating Wu View");
-//
-//		UIView *slideView = MSHookIvar<id>(self, "_slideToUnlockView");
-//		DebugLog(@"slidToUnlockView = %@", slideView);
-//
-//		CGRect frame = slideView.frame;
-//		frame.origin.x = 100.0;
-//		frame.origin.y -= 60.0;
-//		frame.size.width = 60.0;
-//		frame.size.height = 60.0;
-//		
-//		_UIGlintyGradientView *gv = [[%c(_UIGlintyGradientView) alloc] initWithFrame:frame];
-//		gv.backgroundColor = UIColor.greenColor;
-//		DebugLog(@"gv = %@", gv);
-//		
-//		NSString *path = @"/Library/PreferenceBundles/Boxy.bundle/Boxy.png";
-//		UIImage *image = [[UIImage alloc] initWithContentsOfFile:path];
-//		UIImageView *imageView = [[UIImageView alloc] initWithImage:image];		
-//		[gv addSubview:imageView];
-//		
-//		//id scrollView = MSHookIvar<id>(self, "_foregroundScrollView;");
-//		// DebugLog(@"lockscreen ScrollView = %@", scrollView);
-//		//
-//		//[scrollView addSubview:gv];
-//		[self addSubview:gv];
-//		
-//	}
-
-
+// Constructor.
 
 %ctor {
     @autoreleasepool {
-		NSLog(@"Wu-Tang Lock yo");
+		NSLog(@"Wu-Lock Yo!");
+		%init;
+		loadSettings();
 		
-		// TODO: register for notifications
-		// TODO: load prefs
+		// listen for notifications from Settings
+		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(),
+										NULL,
+										(CFNotificationCallback)reloadSettings,
+										CFSTR("com.sticktron.wu-lock.settingschanged"),
+										NULL,
+										CFNotificationSuspensionBehaviorDeliverImmediately);
 		
-		enabled = YES;
-		showSlideTextImmediately = YES;
 	}
 }
+

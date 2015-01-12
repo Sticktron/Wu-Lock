@@ -2,11 +2,11 @@
 //  Wu-Lock Settings
 //
 //  Created by Sticktron.
-//  Copyright (c) 2014. All rights reserved.
+//  Copyright (c) 2015. All rights reserved.
 //
 //
 
-#define DEBUG_PREFIX @"Wu-Lock"
+#define DEBUG_PREFIX @"[Wu-Lock Prefs]"
 #import "../DebugLog.h"
 
 #import <Preferences/PSListController.h>
@@ -14,8 +14,8 @@
 #import <Preferences/PSSwitchTableCell.h>
 
 
-#define HEADER_PATH					@"/Library/PreferenceBundles/WuLockSettings.bundle/header.png"
-#define TILE_BG_PATH				@"/Library/PreferenceBundles/WuLockSettings.bundle/tile.png"
+#define HEADER_PATH					@"/Library/PreferenceBundles/Wu-Lock.bundle/header.png"
+#define TILE_BG_PATH				@"/Library/PreferenceBundles/Wu-Lock.bundle/tile.png"
 #define DEFAULT_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Default"
 #define USER_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Custom"
 
@@ -25,9 +25,18 @@
 #define THUMBNAIL_TAG				1
 #define TITLE_TAG					2
 
+#define PREFS_APPID					CFSTR("com.sticktron.wu-lock")
+#define PREFS_GLYPH_KEY				CFSTR("SelectedGlyph")
+
+#define DEFAULT_GLYPH				@"/Library/Application Support/Wu-Lock/Default/wutang.png"
 
 
-// helpers
+static NSString *selectedGlyph;
+
+
+
+// Helpers.
+
 @implementation UIImage (Private)
 
 // Resize UIImage to new dimensions.
@@ -62,11 +71,12 @@
 	
 	return [self imageWithImage:image scaledToSize:newSize];
 }
+
 @end
 
 
 
-// Header cell.
+// Custom Table Cells.
 
 @interface WULogoCell : PSTableCell
 @property (nonatomic, strong) UIImageView *logoView;
@@ -97,9 +107,7 @@
 }
 @end
 
-
-
-// Enabled switch.
+//
 
 @interface WUSwitchCell : PSSwitchTableCell
 @end
@@ -114,9 +122,7 @@
 }
 @end
 
-
-
-// Button cells.
+//
 
 @interface WUButtonCell : PSTableCell
 @end
@@ -125,22 +131,61 @@
 - (id)initWithStyle:(int)arg1 reuseIdentifier:(id)arg2 specifier:(id)arg3 {
 	self = [super initWithStyle:arg1 reuseIdentifier:arg2 specifier:arg3];
 	if (self) {
-		[[self titleLabel] setTextColor:WU_YELLOW];
-		[[self titleTextLabel] setTextColor:WU_YELLOW];
+		//
 	}
 	return self;
 }
 - (void)layoutSubviews {
 	[super layoutSubviews];
-	[self.textLabel setTextColor:UIColor.blackColor];
 	[self.textLabel setTextColor:IRON];
+}
+@end
+
+//
+
+@interface WULinkCell : PSTableCell
+@property (nonatomic, strong) UIImageView *thumbnailView;
+@property (nonatomic, strong) NSString *lastSelectedGlyph;
+- (void)updateThumbnail;
+@end
+
+@implementation WULinkCell
+- (id)initWithStyle:(int)arg1 reuseIdentifier:(id)arg2 specifier:(id)arg3 {
+	self = [super initWithStyle:arg1 reuseIdentifier:arg2 specifier:arg3];
+	if (self) {
+		//imageChooserCell = self;
+		
+		_thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 2, 40, 40)];
+		_thumbnailView.opaque = YES;
+		_thumbnailView.contentMode = UIViewContentModeScaleAspectFit;
+		[self.contentView addSubview:_thumbnailView];
+	}
+	return self;
+}
+- (void)layoutSubviews {
+	[super layoutSubviews];
+	
+	// adjust image position
+	CGRect frame = self.thumbnailView.frame;
+	frame.origin.x = self.contentView.bounds.size.width - frame.size.width - 2;
+	self.thumbnailView.frame = frame;
+	
+	// update image if necessary
+	[self updateThumbnail];
+}
+- (void)updateThumbnail {
+	if (![selectedGlyph isEqualToString:self.lastSelectedGlyph]) {
+		UIImage *image = [UIImage imageWithContentsOfFile:selectedGlyph];
+		DebugLog(@"updating thumbnail for selected image (%@): %@", selectedGlyph, image);
+		
+		self.thumbnailView.image = image;
+	}
 }
 @end
 
 
 
-
-// Main controller.
+// Main Controller.
 
 @interface WuLockSettingsController : PSListController
 @end
@@ -151,6 +196,18 @@
 	
 	self = [super initForContentSize:size];
 	if (self) {
+		// load user setting for selected glyph
+		CFPreferencesAppSynchronize(PREFS_APPID);
+		CFPropertyListRef value = CFPreferencesCopyAppValue(PREFS_GLYPH_KEY, PREFS_APPID);
+		
+		selectedGlyph = (__bridge NSString *)value;
+		DebugLog(@"checked prefs for selectedGlyph and got: %@", selectedGlyph);
+		
+		if (!selectedGlyph) {
+			DebugLog(@"using default glyph");
+			selectedGlyph = DEFAULT_GLYPH;
+		}
+		
 		
 //		// add a Respring button to the navbar
 //		UIBarButtonItem *respringButton = [[UIBarButtonItem alloc]
@@ -249,15 +306,15 @@
 
 
 
-// Image chooser.
+// Image Chooser.
 
 @interface WUImageController : PSViewController <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *tableView;
 @property (nonatomic, strong) NSArray *defaultImages;
 @property (nonatomic, strong) NSArray *userImages;
-@property (nonatomic, strong) NSString *selectedImage;
 @property (nonatomic, strong) NSOperationQueue *queue;
 @property (nonatomic, strong) NSCache *imageCache;
+@property (nonatomic, strong) NSIndexPath *checkedIndexPath;
 @end
 
 @implementation WUImageController
@@ -340,12 +397,8 @@
 }
 - (void)viewWillAppear:(BOOL)animated {
 	DebugLog0;
-	[super viewWillAppear:animated];
-	
-//	self.defaultImages = [self scanPathForImages:DEFAULT_IMAGE_PATH];
-//	self.customImages = [self scanPathForImages:CUSTOM_IMAGE_PATH];
-	
 	[self updateUserImageList];
+	[super viewWillAppear:animated];
 }
 - (void)updateUserImageList {
 	NSMutableArray *results = [NSMutableArray array];
@@ -384,7 +437,7 @@
 	
 	self.userImages = results;
 }
-//
+
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 	return 2;
 }
@@ -436,11 +489,8 @@
 		[cell.contentView addSubview:titleLabel];
 	}
 	
-	// add content to cells
-	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
-	UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
+	// add content to cells...
 	
-	// get image info
 	NSDictionary *imageInfo;
 	if (indexPath.section == 0) {
 		imageInfo = self.defaultImages[indexPath.row];
@@ -448,31 +498,37 @@
 		imageInfo = self.userImages[indexPath.row];
 	}
 	
+	UILabel *titleLabel = (UILabel *)[cell.contentView viewWithTag:TITLE_TAG];
 	titleLabel.text = imageInfo[@"name"];
+	
+	UIImageView *imageView = (UIImageView *)[cell.contentView viewWithTag:THUMBNAIL_TAG];
 	
 	// get thumbnail from cache, or create and cache new one...
 	NSString *path = imageInfo[@"path"];
 	UIImage *thumbnail = [self.imageCache objectForKey:path];
 	
 	if (thumbnail) {
-		DebugLog(@"found image in cache (%@): %@", path, thumbnail);
+		// found image in cache
+		DebugLog(@"found image in cache for path: %@", path);
 		imageView.image = thumbnail;
+		
 	} else {
-		DebugLog(@"didn't find image in cache");
+		// image is not yet cached
+		DebugLog(@"no image in cache, loading now...");
+		
 		[self.queue addOperationWithBlock:^{
-			// load image
 			UIImage *image = [UIImage imageWithContentsOfFile:path];
-			DebugLog(@"tried to load image and got: %@", image);
-			
 			if (image) {
-				// create and cache thumbnail
+				// create thumbnail
 				CGSize size = imageView.frame.size;
 				UIImage *thumb = [UIImage imageWithImage:image scaledToFitSize:size];
 				DebugLog(@"created thumbnail: %@", thumb);
+				
+				// add to cache
 				[self.imageCache setObject:thumb forKey:path];
 				DebugLog(@"cached with key: %@", path);
 				
-				// add thumbnail to cell
+				// display in cell
 				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
 					UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 					if (cell) {
@@ -480,34 +536,62 @@
 						imageView.image = thumb;
 					}
 				}];
+			} else {
+				// image not found
+				DebugLog(@"error: can't create thumbnail, image not found at path: %@", path);
 			}
 		}];
 	}
 	
-	// is checked?
-	if ([self.selectedImage isEqualToString:path]) {
+	// do we know which row should be checked?
+	if (!self.checkedIndexPath) {
+		// not yet; is it this row?
+		if ([path isEqualToString:selectedGlyph]) {
+			self.checkedIndexPath = indexPath;
+		}
+	}
+	
+	if ([indexPath isEqual:self.checkedIndexPath]) {
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 	} else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
 	}
 	
+		 
+//	if ([selectedGlyph isEqualToString:path]) {
+//		cell.accessoryType = UITableViewCellAccessoryCheckmark;
+//	} else {
+//		cell.accessoryType = UITableViewCellAccessoryNone;
+//	}
+	
 	return cell;
 }
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-	DebugLog(@"User selected section: %ld, row: %ld", (long)indexPath.section, (long)indexPath.row);
+	DebugLog(@"User selected cell at position: (%ld,%ld)", (long)indexPath.section, (long)indexPath.row);
 	
 	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
 	if (cell.accessoryType == UITableViewCellAccessoryCheckmark) {
 		// cell is already selected
+		DebugLog(@"already selected");
 	} else {
-		// un-check old cell
-		UITableViewCell *oldCell = [tableView cellForRowAtIndexPath:[tableView indexPathForSelectedRow]];
+		// un-check previously checked cell
+		DebugLog(@"un-select currently checked cell: %@", self.checkedIndexPath);
+		UITableViewCell *oldCell = [tableView cellForRowAtIndexPath:self.checkedIndexPath];
 		oldCell.accessoryType = UITableViewCellAccessoryNone;
 		
-		// check new cell
+		// check this cell
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
+		self.checkedIndexPath = indexPath;
 		
-		// get the image info for the cell
+		
+//		// select this cell
+//		[tableView selectRowAtIndexPath:indexPath
+//									animated:NO
+//							  scrollPosition:UITableViewScrollPositionNone];
+		
+		
+		
+		// get the image info
 		NSDictionary *imageInfo;
 		if (indexPath.section == 0) {
 			imageInfo = self.defaultImages[indexPath.row];
@@ -516,24 +600,18 @@
 		}
 		
 		// save selection
-		self.selectedImage = imageInfo[@"path"];
-		DebugLog(@"selected image: %@", self.selectedImage);
+		selectedGlyph = imageInfo[@"path"];
+		DebugLog(@"selected image: %@", selectedGlyph);
+		CFPreferencesSetAppValue(PREFS_GLYPH_KEY, (CFStringRef)selectedGlyph, PREFS_APPID);
+		CFPreferencesAppSynchronize(PREFS_APPID);
+		
+		// notify tweak
+		CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),
+											 CFSTR("com.sticktron.wu-lock.settingschanged"),
+											 NULL, NULL, true);
+		
+		//[tableView reloadData];
 	}
-	
-	[tableView reloadData];
-	
-	// save new setting
-	CFPreferencesSetAppValue(CFSTR("Image"), (CFStringRef)self.selectedImage, CFSTR("com.sticktron.wulock"));
-	CFPreferencesAppSynchronize(CFSTR("com.sticktron.wulock"));
 }
 @end
-
-
-
-
-
-
-
-
-
 

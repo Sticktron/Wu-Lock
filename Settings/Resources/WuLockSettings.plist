@@ -25,13 +25,13 @@
 			<key>key</key>
 			<string>Enabled</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<true/>
 			<key>cellClass</key>
 			<string>WUSwitchCell</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		
@@ -52,6 +52,8 @@
 			<string>Choose Image</string>
 			<key>detail</key>
 			<string>WUImageController</string>
+			<key>cellClass</key>
+			<string>WULinkCell</string>
 		</dict>
 		
 		<!-- Style list -->
@@ -78,19 +80,19 @@
 				<string>white</string>
 				<string>black</string>
 				<string>yellow</string>
-				<string>vibrantblur</string>
-				<string>burntblur</string>
+				<string>vibrantBlur</string>
+				<string>burntBlur</string>
 				<string>original</string>
 			</array>
 			
 			<key>key</key>
 			<string>Style</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
-			<string>white</string>
+			<string>vibrantblur</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		
@@ -100,7 +102,7 @@
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Position</string>
+			<string>Adjust Position</string>
 			<key>footerText</key>
 			<string>Negative numbers move the glyph down.</string>
 		</dict>
@@ -116,11 +118,11 @@
 			<key>key</key>
 			<string>YOffset</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<string>0</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		
@@ -133,6 +135,24 @@
 			<string>Slide to unlock</string>
 		</dict>
 		
+		<!-- No delay -->
+		<dict>
+			<key>cell</key>
+			<string>PSSwitchCell</string>
+			<key>label</key>
+			<string>No delay</string>
+			<key>key</key>
+			<string>NoDelay</string>
+			<key>defaults</key>
+			<string>com.sticktron.wu-lock</string>
+			<key>default</key>
+			<true/>
+			<key>cellClass</key>
+			<string>WUSwitchCell</string>
+			<key>PostNotification</key>
+			<string>com.sticktron.wu-lock.settingschanged</string>
+		</dict>
+		
 		<!-- Hide chevron -->
 		<dict>
 			<key>cell</key>
@@ -142,13 +162,13 @@
 			<key>key</key>
 			<string>HideChevron</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<true/>
 			<key>cellClass</key>
 			<string>WUSwitchCell</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		<!-- Use custom text -->
@@ -160,13 +180,13 @@
 			<key>key</key>
 			<string>UseCustomText</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<true/>
 			<key>cellClass</key>
 			<string>WUSwitchCell</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		<!-- Set custom text -->
@@ -178,13 +198,13 @@
 			<key>key</key>
 			<string>CustomText</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
-			<string></string>
+			<string>Protect ya neck</string>
 			<key>placeholder</key>
 			<string>Protect ya neck</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 			<key>alignment</key>
 			<integer>1</integer>
 		</dict>
@@ -210,13 +230,13 @@
 			<key>key</key>
 			<string>UseCustomBioText</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<true/>
 			<key>cellClass</key>
 			<string>WUSwitchCell</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		<!-- Set custom bio fail text -->
@@ -228,13 +248,13 @@
 			<key>key</key>
 			<string>CustomBioText</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
-			<string></string>
+			<string>Shame on a finga</string>
 			<key>placeholder</key>
 			<string>Shame on a finga</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		
@@ -260,11 +280,11 @@
 			<key>key</key>
 			<string>DimTimeout</string>
 			<key>defaults</key>
-			<string>com.sticktron.wulock</string>
+			<string>com.sticktron.wu-lock</string>
 			<key>default</key>
 			<string>8</string>
 			<key>PostNotification</key>
-			<string>com.sticktron.wulock.settingschanged</string>
+			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
 		
 		

@@ -5,9 +5,9 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleExecutable</key>
-	<string>WuLockSettings</string>
+	<string>Wu-Lock</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.sticktron.wulocksettings</string>
+	<string>com.sticktron.wu-lock.settings</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
