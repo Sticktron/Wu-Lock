@@ -14,11 +14,7 @@
 #import <Preferences/PSSwitchTableCell.h>
 
 
-
-#define HEADER_PATH					@"/Library/PreferenceBundles/Wu-Lock.bundle/header.png"
-#define TILE_BG_PATH				@"/Library/PreferenceBundles/Wu-Lock.bundle/tile.png"
-#define DEFAULT_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Default"
-#define USER_IMAGES_PATH			@"/Library/Application Support/Wu-Lock/Custom"
+// Constants.
 
 #define WU_YELLOW					[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
 #define IRON						[UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1]
@@ -26,12 +22,16 @@
 #define THUMBNAIL_TAG				1
 #define TITLE_TAG					2
 
-#define PREFS_APPID					CFSTR("com.sticktron.wu-lock")
-#define PREFS_GLYPH_KEY				CFSTR("SelectedGlyph")
+static CFStringRef const kAppID = CFSTR("com.sticktron.wu-lock");
+static CFStringRef const kSelectedGlyphKey = CFSTR("SelectedGlyph");
 
-#define DEFAULT_GLYPH				@"/Library/Application Support/Wu-Lock/Default/wutang.png"
+static NSString *const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
+static NSString *const kDefaultImagesPath = @"/Library/Application Support/Wu-Lock/Default";
+static NSString *const kUserImagesPath = @"/Library/Application Support/Wu-Lock/Custom";
 
 
+
+// Globals.
 
 static NSString *selectedGlyph;
 
@@ -84,7 +84,9 @@ static NSString *selectedGlyph;
 	if (self) {
 		self.backgroundColor = UIColor.blackColor;
 		
-		UIImage *logo = [UIImage imageWithContentsOfFile:HEADER_PATH];
+		NSString *path = @"/Library/PreferenceBundles/Wu-Lock.bundle/header.png";
+		UIImage *logo = [UIImage imageWithContentsOfFile:path];
+		
 		UIImageView *logoView = [[UIImageView alloc] initWithImage:logo];
 		logoView.frame = self.contentView.bounds;
 		logoView.contentMode = UIViewContentModeCenter;
@@ -180,14 +182,14 @@ static NSString *selectedGlyph;
 	self = [super initForContentSize:size];
 	if (self) {
 		// load user setting for selected glyph
-		CFPreferencesAppSynchronize(PREFS_APPID);
-		CFPropertyListRef value = CFPreferencesCopyAppValue(PREFS_GLYPH_KEY, PREFS_APPID);
+		CFPreferencesAppSynchronize(kAppID);
+		CFPropertyListRef value = CFPreferencesCopyAppValue(kSelectedGlyphKey, kAppID);
 		selectedGlyph = (__bridge NSString *)value;
 		DebugLog(@"checked prefs for selectedGlyph and got: %@", selectedGlyph);
 		
 		if (!selectedGlyph) {
 			DebugLog(@"using default glyph");
-			selectedGlyph = DEFAULT_GLYPH;
+			selectedGlyph = kDefaultGlyph;
 		}
 	}
 	return self;
@@ -265,55 +267,55 @@ static NSString *selectedGlyph;
 		
 		_defaultImages = @[
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"w.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"w.png"],
 				@"name": @"W"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wutang.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"wutang.png"],
 				@"name": @"Wu-Tang"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"wutangclan.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"wutangclan.png"],
 				@"name": @"Wu-Tang Clan"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"gza.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"gza.png"],
 				@"name": @"GZA/Genius"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"rza.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"rza.png"],
 				@"name": @"RZA"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"raekwon.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"raekwon.png"],
 				@"name": @"Raekwon"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ugod.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"ugod.png"],
 				@"name": @"U-God"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"methodman.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"methodman.png"],
 				@"name": @"Method Man"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"methodman2.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"methodman2.png"],
 				@"name": @"Method Man"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"mastakilla.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"mastakilla.png"],
 				@"name": @"Masta Killa"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ins.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"ins.png"],
 				@"name": @"Inspectah Deck"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"odb.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"odb.png"],
 				@"name": @"Ol' Dirty Bastard"
 			},
 			@{
-				@"path": [DEFAULT_IMAGES_PATH stringByAppendingPathComponent:@"ghostface.png"],
+				@"path": [kDefaultImagesPath stringByAppendingPathComponent:@"ghostface.png"],
 				@"name": @"Ghostface Killah"
 			}
 		];
@@ -338,7 +340,7 @@ static NSString *selectedGlyph;
 	NSMutableArray *results = [NSMutableArray array];
 	NSArray *keys = @[NSURLNameKey];
 	
-	NSURL *url = [NSURL fileURLWithPath:USER_IMAGES_PATH isDirectory:YES];
+	NSURL *url = [NSURL fileURLWithPath:kUserImagesPath isDirectory:YES];
 	DebugLog(@"Scanning for user files at: %@ ...", url);
 
 	NSArray *imageURLs = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:url
@@ -400,10 +402,10 @@ static NSString *selectedGlyph;
 		cell.accessoryType = UITableViewCellAccessoryNone;
 		
 		// thumbnail
+		UIImage *bgTile = [UIImage imageWithContentsOfFile:@"/Library/PreferenceBundles/Wu-Lock.bundle/tile.png"];
 		UIImageView *imageView = [[UIImageView alloc] initWithFrame:CGRectMake(15, 5, 64, 64)];
 		imageView.opaque = YES;
 		imageView.contentMode = UIViewContentModeScaleAspectFit;
-		UIImage *bgTile = [UIImage imageWithContentsOfFile:TILE_BG_PATH];
 		imageView.backgroundColor = [UIColor colorWithPatternImage:bgTile];
 		imageView.tag = THUMBNAIL_TAG;
 		[cell.contentView addSubview:imageView];
@@ -518,8 +520,8 @@ static NSString *selectedGlyph;
 		// save selection to prefs
 		selectedGlyph = imageInfo[@"path"];
 		DebugLog(@"saving selected image: %@", selectedGlyph);
-		CFPreferencesSetAppValue(PREFS_GLYPH_KEY, (CFStringRef)selectedGlyph, PREFS_APPID);
-		CFPreferencesAppSynchronize(PREFS_APPID);
+		CFPreferencesSetAppValue(kSelectedGlyphKey, (CFStringRef)selectedGlyph, kAppID);
+		CFPreferencesAppSynchronize(kAppID);
 		
 		// notify tweak
 		CFNotificationCenterPostNotification(CFNotificationCenterGetDarwinNotifyCenter(),

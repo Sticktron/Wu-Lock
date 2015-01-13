@@ -19,17 +19,6 @@ static const float kMarginBottom = 110.0f;
 static NSString * const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
 
 static CFStringRef const kPrefsAppID = CFSTR("com.sticktron.wu-lock");
-static NSString *const kPrefsEnabledKey = @"Enabled";
-static NSString *const kPrefsSelectedGlyphKey = @"SelectedGlyph";
-static NSString *const kPrefsStyleKey = @"Style";
-static NSString *const kPrefsYOffsetKey = @"YOffset";
-static NSString *const kPrefsNoDelayKey = @"NoDelay";
-static NSString *const kPrefsHideChevronKey = @"HideChevron";
-static NSString *const kPrefsUseCustomTextKey = @"UseCustomText";
-static NSString *const kPrefsCustomTextKey = @"CustomText";
-static NSString *const kPrefsUseCustomBioTextKey = @"UseCustomBioText";
-static NSString *const kPrefsCustomBioTextKey = @"CustomBioText";
-static NSString *const kPrefsDimTimeoutKey = @"DimTimeout";
 
 
 
@@ -66,39 +55,37 @@ static inline void loadSettings() {
 		DebugLogC(@"Error getting key list from Prefs!");
 	}
 	
-	DebugLogC(@"Settings are now...");
-	
-	enabled = settings[kPrefsEnabledKey] ? [settings[kPrefsEnabledKey] boolValue] : YES;
+	enabled = settings[@"Enabled"] ? [settings[@"Enabled"] boolValue] : YES;
 	DebugLogC(@"enabled=%d", enabled);
 	
-	selectedGlyph = settings[kPrefsSelectedGlyphKey] ? settings[kPrefsSelectedGlyphKey] : kDefaultGlyph;
+	selectedGlyph = settings[@"SelectedGlyph"] ? settings[@"SelectedGlyph"] : kDefaultGlyph;
 	DebugLogC(@"selectedGlyph=%@", selectedGlyph);
 	
-	style = settings[kPrefsStyleKey] ? settings[kPrefsStyleKey] : @"vibrantBlur";
+	style = settings[@"Style"] ? settings[@"Style"] : @"vibrantBlur";
 	DebugLogC(@"style=%@", style);
 	
-	yOffset = settings[kPrefsYOffsetKey] ? [settings[kPrefsYOffsetKey] floatValue] : 0;
+	yOffset = settings[@"YOffset"] ? [settings[@"YOffset"] floatValue] : 0;
 	DebugLogC(@"yOffset=%f", yOffset);
 	
-	noDelay = settings[kPrefsNoDelayKey] ? [settings[kPrefsNoDelayKey] boolValue] : YES;
+	noDelay = settings[@"NoDelay"] ? [settings[@"NoDelay"] boolValue] : YES;
 	DebugLogC(@"noDelay=%d", noDelay);
 	
-	hideChevron = settings[kPrefsHideChevronKey] ? [settings[kPrefsHideChevronKey] boolValue] : YES;
+	hideChevron = settings[@"HideChevron"] ? [settings[@"HideChevron"] boolValue] : YES;
 	DebugLogC(@"hideChevron=%d", hideChevron);
 	
-	useCustomText = settings[kPrefsUseCustomTextKey] ? [settings[kPrefsUseCustomTextKey] boolValue] : YES;
+	useCustomText = settings[@"UseCustomText"] ? [settings[@"UseCustomText"] boolValue] : YES;
 	DebugLogC(@"useCustomText=%d", useCustomText);
 	
-	customText = settings[kPrefsCustomTextKey] ? settings[kPrefsCustomTextKey] : @"Protect ya neck";
+	customText = settings[@"CustomText"] ? settings[@"CustomText"] : @"Protect ya neck";
 	DebugLogC(@"customText=%@", customText);
 	
-	useCustomBioText = settings[kPrefsUseCustomBioTextKey] ? [settings[kPrefsUseCustomBioTextKey] boolValue] : YES;
+	useCustomBioText = settings[@"UseCustomBioText"] ? [settings[@"UseCustomBioText"] boolValue] : YES;
 	DebugLogC(@"useCustomBioText=%d", useCustomBioText);
 	
-	customBioText = settings[kPrefsCustomBioTextKey] ? settings[kPrefsCustomBioTextKey] : @"Shame on a finga";
+	customBioText = settings[@"CustomBioText"] ? settings[@"CustomBioText"] : @"Shame on a finga";
 	DebugLogC(@"customBioText=%@", customBioText);
 	
-	dimTimeout = settings[kPrefsDimTimeoutKey] ? [settings[kPrefsDimTimeoutKey] intValue] : 8;
+	dimTimeout = settings[@"DimTimeout"] ? [settings[@"DimTimeout"] intValue] : 8;
 	DebugLogC(@"dimTimeout=%d", dimTimeout);
 }
 
