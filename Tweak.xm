@@ -115,37 +115,22 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 // Private interfaces.
 
 @interface SBBacklightController : NSObject
-- (void)_lockScreenDimTimerFired;
 - (double)defaultLockScreenDimInterval;
 @end
 
 @interface SBLockScreenScrollView : UIScrollView
-- (void)updateSlideToUnlockTextForController:(id)arg1;
-- (id)_effectiveCustomSlideToUnlockText;
-- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
-- (BOOL)shouldShowSlideToUnlockTextImmediately;
 @end
 
 @interface SBLockScreenView : UIView
-- (void)_startAnimatingSlideToUnlockWithDelay:(double)arg1;
 - (id)_defaultSlideToUnlockText;
-- (void)_addViews;
 - (void)setCustomSlideToUnlockText:(id)arg1 animated:(_Bool)arg2;
 - (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
-- (void)stopAnimating;
-- (void)startAnimating;
-- (void)setUsesCustomSlideToUnlockDisplayForWhiteBackground:(_Bool)arg1 forRequester:(id)arg2;
-- (void)setSlideToUnlockBlurHidden:(_Bool)arg1 forRequester:(id)arg2;
-- (void)setSlideToUnlockHidden:(_Bool)arg1 forRequester:(id)arg2;
-- (void)willMoveToWindow:(id)arg1;
 @end
 
 @interface SBLockScreenViewController : UIViewController
-
-@end
-
-@interface _UIGlintyStringView : UIView
-@property(retain, nonatomic) UIView *backgroundView;
+- (BOOL)shouldShowSlideToUnlockTextImmediately;
+- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
+- (id)effectiveCustomSlideToUnlockText;
 @end
 
 @interface UIView (Private)
@@ -185,49 +170,43 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 %hook SBLockScreenView
-//- (void)_startAnimatingSlideToUnlockWithDelay:(double)delay {
-//	if (enabled && noDelay) {
-//		%orig(0);
-//	} else {
-//		%orig;
-//	}
-//}
-
 - (id)_defaultSlideToUnlockText {
 	id result = %orig;
 	DebugLog(@"result=%@", result);
 	return result;
 }
 - (void)setCustomSlideToUnlockText:(id)arg1 animated:(_Bool)arg2 {
-	DebugLog(@"arg1=%@; animated=%d", arg1, arg2);
+	DebugLog(@"arg1=%@", arg1);
 	%orig;
 }
 - (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
 	DebugLog(@"arg1=%@", arg1);
-	%orig;
+	
+	if (enabled && useCustomBioText) {
+		%orig(customBioText);
+	} else {
+		%orig;
+	}
 }
 %end
 
 
 %hook SBLockScreenViewController
-- (void)updateSlideToUnlockTextForController:(id)arg1 {
-	DebugLog(@"arg1=%@", arg1);
-	%orig;
-}
-- (id)_effectiveCustomSlideToUnlockText {
+- (id)effectiveCustomSlideToUnlockText {
 	id result = %orig;
 	DebugLog(@"result=%@", result);
 	return result;
 }
 - (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
 	DebugLog(@"arg1=%@", arg1);
-	%orig;
-}
-- (_Bool)shouldShowSlideToUnlockTextImmediately {
-//	BOOL result = %orig;
-//	DebugLog(@"result=%d", result);
-//	return result;
 	
+	if (enabled && useCustomBioText) {
+		%orig(customBioText);
+	} else {
+		%orig;
+	}
+}
+- (BOOL)shouldShowSlideToUnlockTextImmediately {
 	if (enabled && noDelay) {
 		return YES;
 	} else {
