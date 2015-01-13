@@ -7,7 +7,7 @@
 //
 //
 
-#define DEBUG_PREFIX @"[Wu-Lock]"
+#define DEBUG_PREFIX @"🍓  [Wu-Lock]"
 #import "DebugLog.h"
 
 #import <UIKit/UIKit.h>
@@ -133,6 +133,10 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 @end
 
 @interface SBLockScreenScrollView : UIScrollView
+- (void)updateSlideToUnlockTextForController:(id)arg1;
+- (id)_effectiveCustomSlideToUnlockText;
+- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
+- (BOOL)shouldShowSlideToUnlockTextImmediately;
 @end
 
 @interface SBLockScreenView : UIView
@@ -147,6 +151,10 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 - (void)setSlideToUnlockBlurHidden:(_Bool)arg1 forRequester:(id)arg2;
 - (void)setSlideToUnlockHidden:(_Bool)arg1 forRequester:(id)arg2;
 - (void)willMoveToWindow:(id)arg1;
+@end
+
+@interface SBLockScreenViewController : UIViewController
+
 @end
 
 @interface _UIGlintyStringView : UIView
@@ -190,11 +198,53 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 %hook SBLockScreenView
-- (void)_startAnimatingSlideToUnlockWithDelay:(double)delay {
+//- (void)_startAnimatingSlideToUnlockWithDelay:(double)delay {
+//	if (enabled && noDelay) {
+//		%orig(0);
+//	} else {
+//		%orig;
+//	}
+//}
+
+- (id)_defaultSlideToUnlockText {
+	id result = %orig;
+	DebugLog(@"result=%@", result);
+	return result;
+}
+- (void)setCustomSlideToUnlockText:(id)arg1 animated:(_Bool)arg2 {
+	DebugLog(@"arg1=%@; animated=%d", arg1, arg2);
+	%orig;
+}
+- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
+	DebugLog(@"arg1=%@", arg1);
+	%orig;
+}
+%end
+
+
+%hook SBLockScreenViewController
+- (void)updateSlideToUnlockTextForController:(id)arg1 {
+	DebugLog(@"arg1=%@", arg1);
+	%orig;
+}
+- (id)_effectiveCustomSlideToUnlockText {
+	id result = %orig;
+	DebugLog(@"result=%@", result);
+	return result;
+}
+- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
+	DebugLog(@"arg1=%@", arg1);
+	%orig;
+}
+- (_Bool)shouldShowSlideToUnlockTextImmediately {
+//	BOOL result = %orig;
+//	DebugLog(@"result=%d", result);
+//	return result;
+	
 	if (enabled && noDelay) {
-		%orig(0);
+		return YES;
 	} else {
-		%orig;
+		return NO;
 	}
 }
 %end
@@ -243,6 +293,26 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
  //@"original";
 
  
+_UIBackdropViewSettingsAdaptiveLight
+_UIBackdropViewSettingsBlur
+_UIBackdropViewSettingsColorSample
+_UIBackdropViewSettingsColored
+_UIBackdropViewSettingsCombiner
+_UIBackdropViewSettingsDark
+_UIBackdropViewSettingsDarkLow
+_UIBackdropViewSettingsDarkWithZoom
+_UIBackdropViewSettingsFlatSemiLight
+_UIBackdropViewSettingsLight
+ _UIBackdropViewSettingsLightKeyboard
+ _UIBackdropViewSettingsLightLow
+ _UIBackdropViewSettingsNonAdaptive
+ _UIBackdropViewSettingsNone
+ _UIBackdropViewSettingsPasscodePaddle
+ _UIBackdropViewSettingsSemiLight
+ _UIBackdropViewSettingsUltraColored
+ _UIBackdropViewSettingsUltraDark
+ _UIBackdropViewSettingsUltraLight
+ _UIBackgroundHitTestWindow
  		if ([style isEqualTo:kWUStyleWhite] || [style isEqualTo:kWUStyleBlack] || [style isEqualTo:kWUStyleYellow]) {
 			// flat color styles
 		}

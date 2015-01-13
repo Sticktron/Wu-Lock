@@ -6,12 +6,13 @@
 //
 //
 
-#define DEBUG_PREFIX @"[Wu-Lock Prefs]"
+#define DEBUG_PREFIX @"🍋  [Wu-Lock Prefs]"
 #import "../DebugLog.h"
 
 #import <Preferences/PSListController.h>
 #import <Preferences/PSTableCell.h>
 #import <Preferences/PSSwitchTableCell.h>
+
 
 
 #define HEADER_PATH					@"/Library/PreferenceBundles/Wu-Lock.bundle/header.png"
@@ -31,6 +32,7 @@
 #define DEFAULT_GLYPH				@"/Library/Application Support/Wu-Lock/Default/wutang.png"
 
 
+
 static NSString *selectedGlyph;
 
 
@@ -39,19 +41,11 @@ static NSString *selectedGlyph;
 
 @implementation UIImage (Private)
 
-// Resize UIImage to new dimensions.
+// Scale image to size
 + (UIImage *)imageWithImage:(UIImage *)image scaledToSize:(CGSize)size {
-	DebugLogC(@"resizing image (%@) to size: (%fx%f)", image, size.width, size.height);
+	DebugLogC(@"resizing image (%.2f x .2%f) >>>>> %.2f x .2%f", image.size.width, image.size.height, size.width, size.height);
 	
-	BOOL opaque = NO;
-	
-	if ([[UIScreen mainScreen] respondsToSelector:@selector(scale)]) {
-		// In next line, pass 0.0 to use the current device's pixel scaling factor.
-		// Pass 1.0 to force exact pixel size.
-		UIGraphicsBeginImageContextWithOptions(size, opaque, 0);
-	} else {
-		UIGraphicsBeginImageContext(size);
-	}
+	UIGraphicsBeginImageContextWithOptions(size, NO, 0);
 	[image drawInRect:CGRectMake(0, 0, size.width, size.height)];
 	UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
 	UIGraphicsEndImageContext();
@@ -59,17 +53,17 @@ static NSString *selectedGlyph;
 	return newImage;
 }
 
-// Resize UIImage to fit within new dimensions.
+// Scale image to fit to size
 + (UIImage *)imageWithImage:(UIImage *)image scaledToFitSize:(CGSize)size {
-	DebugLogC(@"resizing image (%@) to fit box: (%fx%f)", image, size.width, size.height);
+	DebugLogC(@"resizing image (%.2f x .2%f) to fit size: %.2f x .2%f", image.size.width, image.size.height, size.width, size.height);
 	
 	CGFloat oldWidth = image.size.width;
 	CGFloat oldHeight = image.size.height;
 	
+	// use longest side to determine scale factor
 	CGFloat scaleFactor = (oldWidth > oldHeight) ? size.width / oldWidth : size.height / oldHeight;
-	CGSize newSize = CGSizeMake(oldWidth * scaleFactor, oldHeight * scaleFactor);
 	
-	return [self imageWithImage:image scaledToSize:newSize];
+	return [self imageWithImage:image scaledToSize:CGSizeMake(oldWidth * scaleFactor, oldHeight * scaleFactor)];
 }
 
 @end
@@ -79,7 +73,6 @@ static NSString *selectedGlyph;
 // Custom Table Cells.
 
 @interface WULogoCell : PSTableCell
-@property (nonatomic, strong) UIImageView *logoView;
 @end
 
 @implementation WULogoCell
@@ -91,23 +84,21 @@ static NSString *selectedGlyph;
 	if (self) {
 		self.backgroundColor = UIColor.blackColor;
 		
-		UIImage *logo = [[UIImage alloc] initWithContentsOfFile:HEADER_PATH];
-		_logoView = [[UIImageView alloc] initWithImage:logo];
-		[self addSubview:_logoView];
+		UIImage *logo = [UIImage imageWithContentsOfFile:HEADER_PATH];
+		UIImageView *logoView = [[UIImageView alloc] initWithImage:logo];
+		logoView.frame = self.contentView.bounds;
+		logoView.contentMode = UIViewContentModeCenter;
+		logoView.autoresizingMask = UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleRightMargin | UIViewAutoresizingFlexibleTopMargin | UIViewAutoresizingFlexibleBottomMargin;
+		[self.contentView addSubview:logoView];
 	}
-	
 	return self;
 }
 - (CGFloat)preferredHeightForWidth:(CGFloat)height {
 	return 130.0f;
 }
-- (void)layoutSubviews {
-	[super layoutSubviews];
-	self.logoView.center = self.center;
-}
 @end
 
-//
+
 
 @interface WUSwitchCell : PSSwitchTableCell
 @end
@@ -122,26 +113,21 @@ static NSString *selectedGlyph;
 }
 @end
 
-//
+
 
 @interface WUButtonCell : PSTableCell
 @end
 
 @implementation WUButtonCell
-- (id)initWithStyle:(int)arg1 reuseIdentifier:(id)arg2 specifier:(id)arg3 {
-	self = [super initWithStyle:arg1 reuseIdentifier:arg2 specifier:arg3];
-	if (self) {
-		//
-	}
-	return self;
-}
 - (void)layoutSubviews {
 	[super layoutSubviews];
+	
+	// if I do this at init it doesn't stick :(
 	[self.textLabel setTextColor:IRON];
 }
 @end
 
-//
+
 
 @interface WULinkCell : PSTableCell
 @property (nonatomic, strong) UIImageView *thumbnailView;
@@ -153,10 +139,7 @@ static NSString *selectedGlyph;
 - (id)initWithStyle:(int)arg1 reuseIdentifier:(id)arg2 specifier:(id)arg3 {
 	self = [super initWithStyle:arg1 reuseIdentifier:arg2 specifier:arg3];
 	if (self) {
-		//imageChooserCell = self;
-		
-		_thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 2, 40, 40)];
-		_thumbnailView.opaque = YES;
+		_thumbnailView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 38, 38)];
 		_thumbnailView.contentMode = UIViewContentModeScaleAspectFit;
 		[self.contentView addSubview:_thumbnailView];
 	}
@@ -167,39 +150,38 @@ static NSString *selectedGlyph;
 	
 	// adjust image position
 	CGRect frame = self.thumbnailView.frame;
-	frame.origin.x = self.contentView.bounds.size.width - frame.size.width - 2;
+	frame.origin.x = self.contentView.bounds.size.width - frame.size.width - 4;
+	frame.origin.y = (self.bounds.size.height - frame.size.height) / 2;
 	self.thumbnailView.frame = frame;
 	
-	// update image if necessary
+	// I think this is a lazy place to do this, but it will do for now
 	[self updateThumbnail];
 }
 - (void)updateThumbnail {
-	if (![selectedGlyph isEqualToString:self.lastSelectedGlyph]) {
+	if ([selectedGlyph isEqualToString:self.lastSelectedGlyph]) {
+		DebugLog(@"update not necessary");
+	} else {
 		UIImage *image = [UIImage imageWithContentsOfFile:selectedGlyph];
-		DebugLog(@"updating thumbnail for selected image (%@): %@", selectedGlyph, image);
-		
 		self.thumbnailView.image = image;
+		DebugLog(@"updated thumbnail to: %@", selectedGlyph);
 	}
 }
 @end
 
 
 
-// Main Controller.
+// Settings Controller.
 
 @interface WuLockSettingsController : PSListController
 @end
 
 @implementation WuLockSettingsController
 - (id)initForContentSize:(CGSize)size {
-	DebugLog0;
-	
 	self = [super initForContentSize:size];
 	if (self) {
 		// load user setting for selected glyph
 		CFPreferencesAppSynchronize(PREFS_APPID);
 		CFPropertyListRef value = CFPreferencesCopyAppValue(PREFS_GLYPH_KEY, PREFS_APPID);
-		
 		selectedGlyph = (__bridge NSString *)value;
 		DebugLog(@"checked prefs for selectedGlyph and got: %@", selectedGlyph);
 		
@@ -207,80 +189,33 @@ static NSString *selectedGlyph;
 			DebugLog(@"using default glyph");
 			selectedGlyph = DEFAULT_GLYPH;
 		}
-		
-		
-//		// add a Respring button to the navbar
-//		UIBarButtonItem *respringButton = [[UIBarButtonItem alloc]
-//										   initWithTitle:@"Respring"
-//										   style:UIBarButtonItemStyleDone
-//										   target:self
-//										   action:@selector(showRespringAlert)];
-//		
-//		respringButton.tintColor = WU_YELLOW;
-//		[self.navigationItem setRightBarButtonItem:respringButton];
-		
 	}
-	
 	return self;
 }
 - (id)specifiers {
 	if (_specifiers == nil) {
-		_specifiers = [self loadSpecifiersFromPlistName:@"WuLockSettings" target:self];
+		_specifiers = [self loadSpecifiersFromPlistName:@"Wu-Lock" target:self];
 	}
 	return _specifiers;
 }
-/*
-- (void)setEnabledWithAlert:(id)value specifier:(id)specifier {
-	[self setPreferenceValue:value specifier:specifier];
-	[[NSUserDefaults standardUserDefaults] synchronize];
-	
-	[self showRespringAlert];
-}
-- (void)showRespringAlert {
-	UIAlertView *alert = [[UIAlertView alloc]
-			  initWithTitle:@"Restart SpringBoard?"
-					message:@"SpringBoard must be restarted to enable or disable the tweak."
-				   delegate:self
-		  cancelButtonTitle:@"Later"
-		  otherButtonTitles:@"Now", nil];
-	
-	[alert show];
-}
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(int)buttonIndex {
-	if (buttonIndex == 1) {
-		[self respring];
-	}
-}
-- (void)respring {
-	NSLog(@"Wu-Lock called for a respring.");
-	
-	// this function is deprecated !!!
-	system("killall -HUP SpringBoard");
-}
-*/
 - (void)openEmail {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:sticktron@hotmail.com"]];
 }
 - (void)openTwitter {
 	NSURL *url;
 	
-	// try TweetBot
 	if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tweetbot:"]]) {
 		url = [NSURL URLWithString:@"tweetbot:///user_profile/sticktron"];
 		
-		// try Twitterrific
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitterrific:"]]) {
 		url = [NSURL URLWithString:@"twitterrific:///profile?screen_name=sticktron"];
 		
-		// try Tweetings
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"tweetings:"]]) {
 		url = [NSURL URLWithString:@"tweetings:///user?screen_name=sticktron"];
 		
-		// try Twitter
 	} else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:@"twitter:"]]) {
 		url = [NSURL URLWithString:@"twitter://user?screen_name=sticktron"];
 		
-		// else use Safari
 	} else {
 		url = [NSURL URLWithString:@"http://twitter.com/sticktron"];
 	}
@@ -306,7 +241,7 @@ static NSString *selectedGlyph;
 
 
 
-// Image Chooser.
+// Image Selecta.
 
 @interface WUImageController : PSViewController <UITableViewDataSource, UITableViewDelegate>
 @property (nonatomic, strong) UITableView *tableView;
@@ -396,21 +331,21 @@ static NSString *selectedGlyph;
 	self.view = self.tableView;
 }
 - (void)viewWillAppear:(BOOL)animated {
-	DebugLog0;
 	[self updateUserImageList];
 	[super viewWillAppear:animated];
 }
 - (void)updateUserImageList {
 	NSMutableArray *results = [NSMutableArray array];
-	
-	NSFileManager *fm = [NSFileManager defaultManager];
-	NSURL *url = [NSURL fileURLWithPath:USER_IMAGES_PATH isDirectory:YES];
 	NSArray *keys = @[NSURLNameKey];
-	NSArray *imageURLs = [fm contentsOfDirectoryAtURL:url
-						   includingPropertiesForKeys:keys
-											  options:NSDirectoryEnumerationSkipsHiddenFiles
-												error:nil];
-	DebugLog(@"Found these files here (%@) >> %@", url, imageURLs);
+	
+	NSURL *url = [NSURL fileURLWithPath:USER_IMAGES_PATH isDirectory:YES];
+	DebugLog(@"Scanning for user files at: %@ ...", url);
+
+	NSArray *imageURLs = [[NSFileManager defaultManager] contentsOfDirectoryAtURL:url
+													   includingPropertiesForKeys:keys
+																		  options:NSDirectoryEnumerationSkipsHiddenFiles
+																			error:nil];
+	DebugLog(@"Found these files: %@", imageURLs);
 	
 	// sort results by name
 	[(NSMutableArray *)imageURLs sortUsingComparator:^(NSURL *a, NSURL *b) {
@@ -423,21 +358,19 @@ static NSString *selectedGlyph;
 	for (NSURL *imageURL in imageURLs) {
 		NSString *path = [imageURL path];
 		
-		// check if file is an image by trying to load it
-		UIImage *testImage = [UIImage imageWithContentsOfFile:[imageURL path]];
-		if (!testImage) {
-			// file is not an image
+		// check if the file is an image by trying to load it
+		if ([UIImage imageWithContentsOfFile:[imageURL path]] == nil) {
+			// file is not an image, ignore it
 		} else {
-			// add to results
+			// file is good, add to results
 			NSString *filename = [imageURL resourceValuesForKeys:keys error:nil][NSURLNameKey];
 			[results addObject:@{ @"path":path, @"name":filename }];
 		}
 	}
-	DebugLog(@"Results: %@", results);
+	DebugLog(@"Found these images: %@", results);
 	
 	self.userImages = results;
 }
-
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 	return 2;
 }
@@ -456,13 +389,10 @@ static NSString *selectedGlyph;
 	}
 }
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
-	UITableViewCell *cell;
-	
 	static NSString *CustomCellIdentifier = @"CustomCell";
-	cell = [tableView dequeueReusableCellWithIdentifier:CustomCellIdentifier];
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CustomCellIdentifier];
 	
 	if (!cell) {
-		// create custom cell layout...
 		cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
 									  reuseIdentifier:CustomCellIdentifier];
 		cell.opaque = YES;
@@ -489,7 +419,7 @@ static NSString *selectedGlyph;
 		[cell.contentView addSubview:titleLabel];
 	}
 	
-	// add content to cells...
+	// populate cell...
 	
 	NSDictionary *imageInfo;
 	if (indexPath.section == 0) {
@@ -522,11 +452,11 @@ static NSString *selectedGlyph;
 				// create thumbnail
 				CGSize size = imageView.frame.size;
 				UIImage *thumb = [UIImage imageWithImage:image scaledToFitSize:size];
-				DebugLog(@"created thumbnail: %@", thumb);
+				//DebugLog(@"created thumbnail: %@", thumb);
 				
 				// add to cache
 				[self.imageCache setObject:thumb forKey:path];
-				DebugLog(@"cached with key: %@", path);
+				//DebugLog(@"cached with key: %@", path);
 				
 				// display in cell
 				[[NSOperationQueue mainQueue] addOperationWithBlock:^{
@@ -547,6 +477,7 @@ static NSString *selectedGlyph;
 	if (!self.checkedIndexPath) {
 		// not yet; is it this row?
 		if ([path isEqualToString:selectedGlyph]) {
+			// yes!
 			self.checkedIndexPath = indexPath;
 		}
 	}
@@ -556,13 +487,6 @@ static NSString *selectedGlyph;
 	} else {
 		cell.accessoryType = UITableViewCellAccessoryNone;
 	}
-	
-		 
-//	if ([selectedGlyph isEqualToString:path]) {
-//		cell.accessoryType = UITableViewCellAccessoryCheckmark;
-//	} else {
-//		cell.accessoryType = UITableViewCellAccessoryNone;
-//	}
 	
 	return cell;
 }
@@ -583,14 +507,6 @@ static NSString *selectedGlyph;
 		cell.accessoryType = UITableViewCellAccessoryCheckmark;
 		self.checkedIndexPath = indexPath;
 		
-		
-//		// select this cell
-//		[tableView selectRowAtIndexPath:indexPath
-//									animated:NO
-//							  scrollPosition:UITableViewScrollPositionNone];
-		
-		
-		
 		// get the image info
 		NSDictionary *imageInfo;
 		if (indexPath.section == 0) {
@@ -599,9 +515,9 @@ static NSString *selectedGlyph;
 			imageInfo = self.userImages[indexPath.row];
 		}
 		
-		// save selection
+		// save selection to prefs
 		selectedGlyph = imageInfo[@"path"];
-		DebugLog(@"selected image: %@", selectedGlyph);
+		DebugLog(@"saving selected image: %@", selectedGlyph);
 		CFPreferencesSetAppValue(PREFS_GLYPH_KEY, (CFStringRef)selectedGlyph, PREFS_APPID);
 		CFPreferencesAppSynchronize(PREFS_APPID);
 		
@@ -610,7 +526,7 @@ static NSString *selectedGlyph;
 											 CFSTR("com.sticktron.wu-lock.settingschanged"),
 											 NULL, NULL, true);
 		
-		//[tableView reloadData];
+		// TODO: should update thumbnail of parent link cell here
 	}
 }
 @end
