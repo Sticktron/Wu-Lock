@@ -13,11 +13,55 @@
 #import <UIKit/UIKit.h>
 
 
+
+// Private interfaces.
+
+@interface SBBacklightController : NSObject
+- (double)defaultLockScreenDimInterval;
+@end
+
+@interface SBLockScreenScrollView : UIScrollView
+@end
+
+@interface SBLockScreenView : UIView
+- (id)_defaultSlideToUnlockText;
+- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
+- (void)_startAnimatingSlideToUnlockWithDelay:(double)arg1;
+//- (void)_layoutSlideToUnlockView;
+//- (void)setSlideToUnlockHidden:(_Bool)arg1 forRequester:(id)arg2;
+@end
+
+@interface SBLockScreenViewController : UIViewController
+- (BOOL)shouldShowSlideToUnlockTextImmediately;
+@end
+
+@interface UIView (Private)
+- (void)_setDrawsAsBackdropOverlayWithBlendMode:(long long)arg1;
+@end
+
+@interface _UIBackdropView : UIView
+@property(nonatomic) BOOL blursBackground;
+@property(retain, nonatomic) UIView *contentView;
+@property(retain, nonatomic) UIImage *filterMaskImage;
+- (id)initWithFrame:(CGRect)arg1 style:(int)arg2;
+- (void)setMaskImage:(id)arg1 onLayer:(id)arg2;
+- (id)backdropViewLayer;
+@end
+
+@interface UIColor (Private)
++ (id)_vibrantDarkFillDodgeColor;
++ (id)_vibrantLightFillDarkeningColor;
++ (id)_vibrantLightFillBurnColor;
++ (id)_vibrantLightDividerDarkeningColor;
++ (id)_vibrantLightDividerBurnColor;
+@end
+
+
+
 // Constants.
 
 static const float kMarginBottom = 110.0f;
 static NSString * const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
-
 static CFStringRef const kPrefsAppID = CFSTR("com.sticktron.wu-lock");
 
 
@@ -56,37 +100,29 @@ static inline void loadSettings() {
 	}
 	
 	enabled = settings[@"Enabled"] ? [settings[@"Enabled"] boolValue] : YES;
-	DebugLogC(@"enabled=%d", enabled);
-	
 	selectedGlyph = settings[@"SelectedGlyph"] ? settings[@"SelectedGlyph"] : kDefaultGlyph;
-	DebugLogC(@"selectedGlyph=%@", selectedGlyph);
-	
 	style = settings[@"Style"] ? settings[@"Style"] : @"vibrantBlur";
-	DebugLogC(@"style=%@", style);
-	
 	yOffset = settings[@"YOffset"] ? [settings[@"YOffset"] floatValue] : 0;
-	DebugLogC(@"yOffset=%f", yOffset);
-	
 	noDelay = settings[@"NoDelay"] ? [settings[@"NoDelay"] boolValue] : YES;
-	DebugLogC(@"noDelay=%d", noDelay);
-	
 	hideChevron = settings[@"HideChevron"] ? [settings[@"HideChevron"] boolValue] : YES;
-	DebugLogC(@"hideChevron=%d", hideChevron);
-	
 	useCustomText = settings[@"UseCustomText"] ? [settings[@"UseCustomText"] boolValue] : YES;
-	DebugLogC(@"useCustomText=%d", useCustomText);
-	
 	customText = settings[@"CustomText"] ? settings[@"CustomText"] : @"Protect ya neck";
-	DebugLogC(@"customText=%@", customText);
-	
 	useCustomBioText = settings[@"UseCustomBioText"] ? [settings[@"UseCustomBioText"] boolValue] : YES;
-	DebugLogC(@"useCustomBioText=%d", useCustomBioText);
-	
 	customBioText = settings[@"CustomBioText"] ? settings[@"CustomBioText"] : @"Shame on a finga";
-	DebugLogC(@"customBioText=%@", customBioText);
-	
 	dimTimeout = settings[@"DimTimeout"] ? [settings[@"DimTimeout"] intValue] : 8;
-	DebugLogC(@"dimTimeout=%d", dimTimeout);
+	
+	//DebugLog(@"Settings are now >>>");
+	//DebugLogC(@"enabled=%d", enabled);
+	//DebugLogC(@"selectedGlyph=%@", selectedGlyph);
+	//DebugLogC(@"style=%@", style);
+	//DebugLogC(@"yOffset=%f", yOffset);
+	//DebugLogC(@"noDelay=%d", noDelay);
+	//DebugLogC(@"hideChevron=%d", hideChevron);
+	//DebugLogC(@"useCustomText=%d", useCustomText);
+	//DebugLogC(@"customText=%@", customText);
+	//DebugLogC(@"useCustomBioText=%d", useCustomBioText);
+	//DebugLogC(@"customBioText=%@", customBioText);
+	//DebugLogC(@"dimTimeout=%d", dimTimeout);
 }
 
 static inline void reloadSettings(CFNotificationCenterRef center, void *observer, CFStringRef name,
@@ -112,50 +148,6 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 
-// Private interfaces.
-
-@interface SBBacklightController : NSObject
-- (double)defaultLockScreenDimInterval;
-@end
-
-@interface SBLockScreenScrollView : UIScrollView
-@end
-
-@interface SBLockScreenView : UIView
-- (id)_defaultSlideToUnlockText;
-- (void)setCustomSlideToUnlockText:(id)arg1 animated:(_Bool)arg2;
-- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
-@end
-
-@interface SBLockScreenViewController : UIViewController
-- (BOOL)shouldShowSlideToUnlockTextImmediately;
-- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
-- (id)effectiveCustomSlideToUnlockText;
-@end
-
-@interface UIView (Private)
-- (void)_setDrawsAsBackdropOverlayWithBlendMode:(long long)arg1;
-@end
-
-@interface _UIBackdropView : UIView
-@property(nonatomic) BOOL blursBackground;
-@property(retain, nonatomic) UIView *contentView;
-@property(retain, nonatomic) UIImage *filterMaskImage;
-- (id)initWithFrame:(CGRect)arg1 style:(int)arg2;
-- (void)setMaskImage:(id)arg1 onLayer:(id)arg2;
-- (id)backdropViewLayer;
-@end
-
-@interface UIColor (Private)
-+ (id)_vibrantDarkFillDodgeColor;
-+ (id)_vibrantLightFillDarkeningColor;
-+ (id)_vibrantLightFillBurnColor;
-+ (id)_vibrantLightDividerDarkeningColor;
-+ (id)_vibrantLightDividerBurnColor;
-@end
-
-
-
 // Hooks.
 
 %hook SBBacklightController
@@ -171,17 +163,13 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 %hook SBLockScreenView
 - (id)_defaultSlideToUnlockText {
-	id result = %orig;
-	DebugLog(@"result=%@", result);
-	return result;
-}
-- (void)setCustomSlideToUnlockText:(id)arg1 animated:(_Bool)arg2 {
-	DebugLog(@"arg1=%@", arg1);
-	%orig;
+	if (enabled && useCustomText) {
+		return customText;
+	} else {
+		return %orig;
+	}
 }
 - (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
-	DebugLog(@"arg1=%@", arg1);
-	
 	if (enabled && useCustomBioText) {
 		%orig(customBioText);
 	} else {
@@ -192,20 +180,6 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 %hook SBLockScreenViewController
-- (id)effectiveCustomSlideToUnlockText {
-	id result = %orig;
-	DebugLog(@"result=%@", result);
-	return result;
-}
-- (void)shakeSlideToUnlockTextWithCustomText:(id)arg1 {
-	DebugLog(@"arg1=%@", arg1);
-	
-	if (enabled && useCustomBioText) {
-		%orig(customBioText);
-	} else {
-		%orig;
-	}
-}
 - (BOOL)shouldShowSlideToUnlockTextImmediately {
 	if (enabled && noDelay) {
 		return YES;
@@ -218,8 +192,6 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 %hook SBLockScreenScrollView
 - (id)initWithFrame:(CGRect)frame {
-	DebugLog0;
-	
 	if (!enabled) return %orig;
 	
 	if ((self = %orig)) {
@@ -342,43 +314,6 @@ _UIBackdropViewSettingsLight
 	}
 	return self;
 }
-
-/*
-- (void)willMoveToWindow:(id)arg1 {
-	DebugLog(@"arg1=%@", arg1);
-	%orig;
-}
-
-- (void)didMoveToWindow {
-	DebugLog0;
-	%orig;
-}
-*/
-
-/*
-- (void)layoutSubviews {
-	DebugLog0;
-	%orig;
-}
-
-- (void)_layoutSlideToUnlockView {
-	DebugLog0;
-	%orig;
-	
-//	_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
-//	DebugLog(@"glintyView=%@", glintyView);
-	
-//	DebugLog(@"glyphView=%@", glyphView);
-//	glyphView.center = glintyView.center;
-//	glyphView.backgroundColor = UIColor.greenColor;
-	
-//	[glintyView addSubview:glyphView];
-//	glintyView.backgroundView = glyphView;
-//	glintyView.backgroundColor = UIColor.blackColor;
-	
-}
-*/
-
 %end
 
 
