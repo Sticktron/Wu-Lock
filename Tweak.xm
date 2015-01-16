@@ -173,7 +173,7 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 %hook SBLockScreenView
-- (id)_defslultSlideToUnlockText {
+- (id)_defaultSlideToUnlockText {
 	if (enabled && useCustomText) {
 		return customText;
 	} else {
