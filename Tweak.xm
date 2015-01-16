@@ -20,15 +20,16 @@
 - (double)defaultLockScreenDimInterval;
 @end
 
-@interface SBLockScreenScrollView : UIScrollView
-@end
-
 @interface SBLockScreenView : UIView
 - (id)_defaultSlideToUnlockText;
 - (void)shakeSlideToUnlockTextWithCustomText:(id)arg1;
 - (void)_startAnimatingSlideToUnlockWithDelay:(double)arg1;
-//- (void)_layoutSlideToUnlockView;
-//- (void)setSlideToUnlockHidden:(_Bool)arg1 forRequester:(id)arg2;
+- (void)_layoutSlideToUnlockView;
+@end
+
+@interface SBLockScreenScrollView : UIScrollView
+@property(nonatomic) SBLockScreenView *lockScreenView;
+- (id)glyphViewForStyle:(NSString *)style image:(UIImage *)image;
 @end
 
 @interface SBLockScreenViewController : UIViewController
@@ -40,6 +41,7 @@
 @end
 
 @interface _UIBackdropView : UIView
+@property(nonatomic) int style;
 @property(nonatomic) BOOL blursBackground;
 @property(retain, nonatomic) UIView *contentView;
 @property(retain, nonatomic) UIImage *filterMaskImage;
@@ -56,18 +58,27 @@
 + (id)_vibrantLightDividerBurnColor;
 @end
 
+@interface _UIGlintyStringView : UIView
+- (id)_chevronImageForStyle:(int)arg1;
+//- (id)initWithText:(id)arg1 andFont:(id)arg2;
+@end
+
 
 
 // Constants.
 
-static const float kMarginBottom = 110.0f;
+//static const float kMarginBottom = 10.0f;
+static const float kMarginBottom = 0;
 static NSString * const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
 static CFStringRef const kPrefsAppID = CFSTR("com.sticktron.wu-lock");
+
+#define WU_YELLOW	[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
 
 
 
 // Globals.
 
+static id glyphView;
 static BOOL enabled;
 static NSString *selectedGlyph;
 static NSString *style;
@@ -162,7 +173,7 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 
 
 %hook SBLockScreenView
-- (id)_defaultSlideToUnlockText {
+- (id)_defslultSlideToUnlockText {
 	if (enabled && useCustomText) {
 		return customText;
 	} else {
@@ -174,6 +185,21 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 		%orig(customBioText);
 	} else {
 		%orig;
+	}
+}
+- (void)_layoutSlideToUnlockView {
+	%orig;
+	
+	// position the glyph based on the frame of the slide to unlock text
+	// (eg. the text is lower if the music widget is onscreen)
+	
+	_UIGlintyStringView *slideToUnlockView = MSHookIvar<id>(self, "_slideToUnlockView");
+	DebugLog(@"slideToUnlockView=%@", slideToUnlockView);
+	
+	if (slideToUnlockView && glyphView) {
+		CGRect frame = ((UIView *)glyphView).frame;
+		frame.origin.y = slideToUnlockView.superview.frame.origin.y - frame.size.height - kMarginBottom - yOffset;
+		((UIView *)glyphView).frame = frame;
 	}
 }
 %end
@@ -195,42 +221,123 @@ static inline void reloadSettings(CFNotificationCenterRef center, void *observer
 	if (!enabled) return %orig;
 	
 	if ((self = %orig)) {
-		DebugLog(@"Creating glyph for: selectedGlyph=%@", selectedGlyph);
-		
-		// load image
+		DebugLog(@"selectedGlyph=%@", selectedGlyph);
 		UIImage *image = [[UIImage alloc] initWithContentsOfFile:selectedGlyph];
-		if (image) {
-			DebugLog(@"loaded image with size=%@ and scale=%f", NSStringFromCGSize(image.size), image.scale);
+		
+		if (!image) {
+			NSLog(@"Wu-Lock: error: glyph image not found.");
+		} else {
+			DebugLog(@"loaded image; size=%@; scale=%f", NSStringFromCGSize(image.size), image.scale);
 			
 			// custom images may not have @2x/@3x suffixes,
-			// so let's manually match them to screen scale
+			// so let's convert them to screen scale
 			if (image.scale != [UIScreen mainScreen].scale) {
-				DebugLog(@"image needs scale adjusted!");
-				//image = [UIImage imageWithCorrectedScale:image];
-				
+				DebugLog(@"image scale factor doesn't match screen!");
 				image = [[UIImage alloc] initWithCGImage:image.CGImage
 												   scale:[UIScreen mainScreen].scale
 											 orientation:UIImageOrientationUp];
-				
-				DebugLog(@"image now has size: %@ and scale: %f", NSStringFromCGSize(image.size), image.scale);
+				DebugLog(@"fixed image; size=%@; scale=%f", NSStringFromCGSize(image.size), image.scale);
 			}
-		} else {
-			DebugLog(@"image not found :(");
-			// TODO: do something?
+			
+			glyphView = [self glyphViewForStyle:style image:image];
+			[self addSubview:glyphView];
+		}
+	}
+	return self;
+}
+
+%new(@@:@@)
+- (id)glyphViewForStyle:(NSString *)style image:(UIImage *)image {
+	DebugLog(@"style=%@", style);
+	
+	//	@"White",
+	//	@"Black",
+	//	@"Wu-Yellow",
+	//	@"Vibrant blur (3900)", //PasscodePaddle
+	//	@"Plain",
+	//	@"0 - Light #1",
+	//	@"1 - Dark #1",
+	//	@"2 - Blur",
+	//	@"2000 - ColorSample",
+	//	@"2010 - UltraLight", // alert views
+	//	@"2029 - LightLow",
+	//	@"2030 - Dark #2", // NC
+	//	@"2039 - DarkLow",
+	//	@"2040 - Colored #1",
+	//	@"2050 - UltraDark #1",
+	//	@"2060 - AdaptiveLight", // CC
+	//	@"2070 - SemiLight",
+	//	@"2071 - FlatSemiLight",
+	//	@"2080 - UltraColored"
+	//	@"Light vibrant blur (3901)", //LightKeyboard
+	
+	UIView *newGlyphView;
+	
+	if ([style isEqualToString:@"white"] ||
+		[style isEqualToString:@"black"] ||
+		[style isEqualToString:@"wu-yellow"]) {
+		
+		// ImageView with tinted image
+		newGlyphView = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+		
+		if ([style isEqualToString:@"white"]) {
+			newGlyphView.tintColor = UIColor.whiteColor;
+		} else if ([style isEqualToString:@"black"]) {
+			newGlyphView.tintColor = UIColor.blackColor;
+		} else if ([style isEqualToString:@"wu-yellow"]) {
+			newGlyphView.tintColor = WU_YELLOW;
 		}
 		
 		
-		// Style Selecta ...
+	} else if ([style isEqualToString:@"plain"]) {
+		// ImageView with original image
+		newGlyphView = [[UIImageView alloc] initWithImage:image];
+		
+		
+	} else { // BackdropView with image mask
+		
+//		int code = 3900; // default setting (vibrantBlur)
+//		
+//		if ([style isEqualToString:@"2030"]) {
+//			code = 2030;
+//		} else if ([style isEqualToString:@"2039"]) {
+//			code = 2039;
+//		} else if ([style isEqualToString:@"2050"]) {
+//			code = 2050;
+//		} else if ([style isEqualToString:@"2060"]) {
+//			code = 2060;
+//		} else if ([style isEqualToString:@"2070"]) {
+//			code = 2070;
+//		} else if ([style isEqualToString:@"2071"]) {
+//			code = 2071;
+//		} else if ([style isEqualToString:@"2080"]) {
+//			code = 2080;
+//		} else if ([style isEqualToString:@"3901"]) {
+//			code = 3901;
+//		}
+		
+		int code = [style intValue];
+		newGlyphView = [[_UIBackdropView alloc] initWithFrame:(CGRect){CGPointZero, image.size} style:code];
+		
+		// turn image into a mask
+		CALayer *maskLayer = [CALayer layer];
+		maskLayer.frame = newGlyphView.bounds;
+		maskLayer.contents = (id)image.CGImage;
+		newGlyphView.layer.mask = maskLayer;
+	}
+	
+	// set initial position
+	CGRect screenRect = [UIScreen mainScreen].bounds;
+	float x = screenRect.size.width + CGRectGetMidX(screenRect);
+	float y = screenRect.size.height - 110 - (image.size.height/2.0) - yOffset;
+	newGlyphView.center = (CGPoint){x, y};
+	
+	return newGlyphView;
+}
+
+
 /*
 
- //@"white";
- //@"black";
- //@"yellow";
- //@"vibrantBlur";
- //@"burntBlur";
- //@"original";
-
- 
 _UIBackdropViewSettingsAdaptiveLight
 _UIBackdropViewSettingsBlur
 _UIBackdropViewSettingsColorSample
@@ -241,55 +348,35 @@ _UIBackdropViewSettingsDarkLow
 _UIBackdropViewSettingsDarkWithZoom
 _UIBackdropViewSettingsFlatSemiLight
 _UIBackdropViewSettingsLight
- _UIBackdropViewSettingsLightKeyboard
- _UIBackdropViewSettingsLightLow
- _UIBackdropViewSettingsNonAdaptive
- _UIBackdropViewSettingsNone
- _UIBackdropViewSettingsPasscodePaddle
- _UIBackdropViewSettingsSemiLight
- _UIBackdropViewSettingsUltraColored
- _UIBackdropViewSettingsUltraDark
- _UIBackdropViewSettingsUltraLight
- _UIBackgroundHitTestWindow
- 		if ([style isEqualTo:kWUStyleWhite] || [style isEqualTo:kWUStyleBlack] || [style isEqualTo:kWUStyleYellow]) {
-			// flat color styles
-		}
-*/
-		
-		// create blur view
-		CGRect frame = (CGRect){{0, 0}, image.size};
-		_UIBackdropView *glyphBlurView = [[_UIBackdropView alloc] initWithFrame:frame style:3900];
-		//_UIBackdropView *glyphBlurView = [[_UIBackdropView alloc] initWithFrame:frame style:2060];
-		
-		// create mask
-		CALayer *maskLayer = [CALayer layer];
-		maskLayer.frame = glyphBlurView.bounds;
-		maskLayer.contents = (id)image.CGImage;
-		glyphBlurView.layer.mask = maskLayer;
-		
-		// set position
-		CGRect screenRect = [UIScreen mainScreen].bounds;
-		float x = screenRect.size.width + CGRectGetMidX(screenRect);
-		float y = screenRect.size.height - kMarginBottom - (image.size.height/2.0) - yOffset;
-		glyphBlurView.center = (CGPoint){x, y};
-		
-		// some styles require a second layer of glyph...
-		
-//		//UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:image];
-//		UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-//		glyphImageView.tintColor = [UIColor colorWithWhite:1 alpha:0.2];
-//		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-//		
-//		//		glyphImageView.tintColor = [UIColor _vibrantDarkFillDodgeColor];
-//		//		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-		
-//		[glyphBlurView.contentView addSubview:glyphImageView];
-//		[glyphImageView release];
-		
-		[self addSubview:glyphBlurView];
-		
-		
-		
+_UIBackdropViewSettingsLightKeyboard
+_UIBackdropViewSettingsLightLow
+_UIBackdropViewSettingsNonAdaptive
+_UIBackdropViewSettingsNone
+_UIBackdropViewSettingsPasscodePaddle
+_UIBackdropViewSettingsSemiLight
+_UIBackdropViewSettingsUltraColored
+_UIBackdropViewSettingsUltraDark
+_UIBackdropViewSettingsUltraLight
+_UIBackgroundHitTestWindow
+
+ 
+ 
+ //		// some styles require a second layer of glyph...
+ //
+ //		//UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:image];
+ //		UIImageView *glyphImageView = [[UIImageView alloc] initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
+ //		glyphImageView.tintColor = [UIColor colorWithWhite:1 alpha:0.2];
+ //		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+ //
+ //		//		glyphImageView.tintColor = [UIColor _vibrantDarkFillDodgeColor];
+ //		//		[glyphImageView _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
+ 
+ //		[glyphView.contentView addSubview:glyphImageView];
+ //		[glyphImageView release];
+ 
+ 
+ 
+ 
 	//		// test stuff ////////
 	//
 	//		_UIGlintyStringView *glintyView = MSHookIvar<id>(self, "_slideToUnlockView");
@@ -297,22 +384,33 @@ _UIBackdropViewSettingsLight
 	//
 	//		UIImageView *glyphView1 = [[UIImageView alloc]
 	//								   initWithImage:[image imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate]];
-	//		
+	//
 	//		CGRect screenRect = [UIScreen mainScreen].bounds;
 	//		float x = screenRect.size.width + CGRectGetMidX(screenRect);
 	//		float y = screenRect.size.height - kMarginBottom - CGRectGetMidY(glyphView1.frame);
 	//		glyphView1.center = (CGPoint){x, y};
-	//		
+	//
 	//		glyphView1.tintColor = [UIColor colorWithWhite:0.65 alpha:1];
 	//		[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeOverlay];
 	//		//[glyphView1 _setDrawsAsBackdropOverlayWithBlendMode:kCGBlendModeColorDodge];
-	//		
-	//		
+	//
+	//
 	//		[self addSubview:glyphView1];
 	//		[glyphView1 release];
-	
+
+*/
+
+
+%end
+
+
+%hook _UIGlintyStringView
+- (id)_chevronImageForStyle:(int)arg1 {
+	if (enabled && hideChevron) {
+		return nil;
+	} else {
+		return %orig;
 	}
-	return self;
 }
 %end
 

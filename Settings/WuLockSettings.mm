@@ -14,8 +14,6 @@
 #import <Preferences/PSSwitchTableCell.h>
 
 
-// Constants.
-
 #define WU_YELLOW					[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
 #define IRON						[UIColor colorWithRed:0.3 green:0.3 blue:0.3 alpha:1]
 
@@ -31,13 +29,9 @@ static NSString *const kUserImagesPath = @"/Library/Application Support/Wu-Lock/
 
 
 
-// Globals.
-
 static NSString *selectedGlyph;
 
 
-
-// Helpers.
 
 @implementation UIImage (Private)
 
