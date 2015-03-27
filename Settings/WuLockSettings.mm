@@ -23,9 +23,9 @@
 static CFStringRef const kAppID = CFSTR("com.sticktron.wu-lock");
 static CFStringRef const kSelectedGlyphKey = CFSTR("SelectedGlyph");
 
-static NSString *const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
-static NSString *const kDefaultImagesPath = @"/Library/Application Support/Wu-Lock/Default";
-static NSString *const kUserImagesPath = @"/Library/Application Support/Wu-Lock/Custom";
+static NSString * const kDefaultGlyph = @"/Library/Application Support/Wu-Lock/Default/wutang.png";
+static NSString * const kDefaultImagesPath = @"/Library/Application Support/Wu-Lock/Default";
+static NSString * const kUserImagesPath = @"/Library/Application Support/Wu-Lock/Custom";
 
 
 
@@ -330,6 +330,16 @@ static NSString *selectedGlyph;
 	[self updateUserImageList];
 	[super viewWillAppear:animated];
 }
+//- (void)didReceiveMemoryWarning {
+//	DebugLog(@"emptying image cache");
+//	[self.imageCache removeAllObjects];
+//	[super didReceiveMemoryWarning];
+//}
+//- (void)viewWillDisappear:(BOOL)animated {
+//	DebugLog(@"emptying image cache");
+//	[self.imageCache removeAllObjects];
+//	[super viewWillDisappear:animated];
+//}
 - (void)updateUserImageList {
 	NSMutableArray *results = [NSMutableArray array];
 	NSArray *keys = @[NSURLNameKey];
@@ -373,8 +383,10 @@ static NSString *selectedGlyph;
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section {
 	if (section == 0) {
 		return @"Default images";
-	} else {
+	} else if (section == 1) {
 		return @"User images";
+	} else {
+		return nil;
 	}
 }
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
