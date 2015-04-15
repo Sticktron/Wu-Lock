@@ -1,10 +1,10 @@
 Package: com.sticktron.wu-lock
-Name: Wu-Lock Beta
-Version: 0.9.2
+Name: Wu-Lock
+Version: 1.0
 Architecture: iphoneos-arm
 Depends: firmware (>= 8.0), mobilesubstrate, preferenceloader
 Conflicts: com.evilgoldfish.lockglyph
-Description: Unlock in style! Customize your lock glyph, unlock text and more. Includes a set of Wu-Tang lock glyphs to get you started!
+Description: Unlock in Wu-Tang style! Customize your lock glyph, unlock text and more. Includes a set of Wu-Tang lock glyphs to get you started!
 Homepage: http://sticktron.com
 Icon: file:///Library/PreferenceBundles/Wu-LockSettings.bundle/icon.png
 Author: Sticktron <sticktron@hotmail.com>
