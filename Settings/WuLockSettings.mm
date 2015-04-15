@@ -12,6 +12,7 @@
 #import <Preferences/PSListController.h>
 #import <Preferences/PSTableCell.h>
 #import <Preferences/PSSwitchTableCell.h>
+#import <Social/Social.h>
 
 
 #define WU_YELLOW					[UIColor colorWithRed:1 green:205/255.0 blue:0 alpha:1]
@@ -28,9 +29,7 @@ static NSString * const kDefaultImagesPath = @"/Library/Application Support/Wu-L
 static NSString * const kUserImagesPath = @"/Library/Application Support/Wu-Lock/Custom";
 
 
-
 static NSString *selectedGlyph;
-
 
 
 @implementation UIImage (Private)
@@ -194,6 +193,22 @@ static NSString *selectedGlyph;
 	}
 	return _specifiers;
 }
+- (void)viewDidLoad {
+	[super viewDidLoad];
+	
+	// add a heart button to the navbar
+	NSString *path = @"/Library/PreferenceBundles/Wu-Lock.bundle/heart.png";
+	UIImage *heartImage = [[UIImage alloc] initWithContentsOfFile:path];
+	
+	UIBarButtonItem *heartButton = [[UIBarButtonItem alloc] initWithImage:heartImage
+																	style:UIBarButtonItemStylePlain
+																   target:self
+																   action:@selector(showLove)];
+	heartButton.imageInsets = (UIEdgeInsets){2, 0, -2, 0};
+	heartButton.tintColor = WU_YELLOW;
+	
+	[self.navigationItem setRightBarButtonItem:heartButton];
+}
 - (void)openEmail {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"mailto:sticktron@hotmail.com"]];
 }
@@ -219,7 +234,7 @@ static NSString *selectedGlyph;
 	[[UIApplication sharedApplication] openURL:url];
 }
 - (void)openGitHub {
-	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://github.com/Sticktron/"]];
+	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://github.com/Sticktron/Wu-Lock"]];
 }
 - (void)openSticktronWeb {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.sticktron.com"]];
@@ -232,6 +247,18 @@ static NSString *selectedGlyph;
 }
 - (void)openWuTangClanWeb {
 	[[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"http://www.wutangclan.com"]];
+}
+- (void)showLove {
+	// send a nice tweet ;)
+	
+	SLComposeViewController *composeController = [SLComposeViewController
+												  composeViewControllerForServiceType:SLServiceTypeTwitter];
+	
+	[composeController setInitialText:@"I'm using #Wu-Lock by @Sticktron to customize my unlock style!"];
+	
+	[self presentViewController:composeController
+					   animated:YES
+					 completion:nil];
 }
 @end
 

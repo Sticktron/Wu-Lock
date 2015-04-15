@@ -5,7 +5,7 @@ BUNDLE_NAME = Wu-Lock
 Wu-Lock_CFLAGS = -fobjc-arc
 Wu-Lock_FILES = WuLockSettings.mm
 Wu-Lock_INSTALL_PATH = /Library/PreferenceBundles
-Wu-Lock_FRAMEWORKS = UIKit CoreGraphics
+Wu-Lock_FRAMEWORKS = UIKit CoreGraphics Social
 Wu-Lock_PRIVATE_FRAMEWORKS = Preferences
 
 include theos/makefiles/common.mk

@@ -36,14 +36,14 @@
 		
 		
 		
-		<!-- [] Appearance -->
+		<!-- [] Glyph -->
 		<dict>
 			<key>cell</key>
 			<string>PSGroupCell</string>
 			<key>label</key>
-			<string>Appearance</string>
+			<string>Lock Glyph</string>
 			<key>footerText</key>
-			<string>The style list and the names are not yet final.</string>
+			<string>Negative numbers move the glyph down.</string>
 		</dict>
 		
 		<!-- Image chooser -->
@@ -51,7 +51,7 @@
 			<key>cell</key>
 			<string>PSLinkCell</string>
 			<key>label</key>
-			<string>Choose Image</string>
+			<string>Image</string>
 			<key>detail</key>
 			<string>WUImageController</string>
 			<key>cellClass</key>
@@ -63,7 +63,7 @@
 			<key>cell</key>
 			<string>PSLinkListCell</string>
 			<key>label</key>
-			<string>Style</string>
+			<string>Render Style</string>
 			<key>detail</key>
 			<string>PSListItemsController</string>
 			<key>key</key>
@@ -73,50 +73,26 @@
 			
 			<key>validTitles</key>
 			<array>
-				<string>White</string>
-				<string>Black</string>
-				<string>Wu-Yellow</string>
-				<string>Vibrant blur (3900)</string><!--PasscodePaddle-->
-				<string>Plain</string>
-				<string>0 - Light #1</string>
-				<string>1 - Dark #1</string>
-				<string>2 - Blur</string>
-				<string>2000 - ColorSample</string>
-				<string>2010 - UltraLight (alerts)</string><!--alert views-->
-				<string>2029 - LightLow</string>
-				<string>2030 - Dark #2 (NC)</string><!--NC-->
-				<string>2039 - DarkLow</string>
-				<string>2040 - Colored #1</string>
-				<string>2050 - UltraDark #1</string>
-				<string>2060 - AdaptiveLight (CC)</string><!--CC-->
-				<string>2070 - SemiLight</string>
-				<string>2071 - FlatSemiLight</string>
-				<string>2080 - UltraColored</string>
-				<string>Light vibrant blur (3901)</string><!--LightKeyboard-->
+				<string>Original image (no effect)</string>
+				<string>Wu-Yellow Tint</string>
+				<string>White Tint</string>
+				<string>Black Tint</string>
+				<string>Vibrant Blur</string><!--3900:PasscodePaddle-->
+				<string>UltraLight Blur</string><!--2010:AlertViews-->				
+				<string>Dark Blur</string><!--2030:NC-->
+				<string>Plain Blur</string><!--2:?-->
 			</array>
 
 			<key>validValues</key>
 			<array>
+				<string>plain</string>
+				<string>wu-yellow</string>
 				<string>white</string>
 				<string>black</string>
-				<string>wu-yellow</string>
 				<string>vibrantBlur</string>
-				<string>plain</string>
-				<string>0</string>
-				<string>1</string>
-				<string>2</string>
-				<string>2000</string>
 				<string>2010</string>
-				<string>2029</string>
 				<string>2030</string>
-				<string>2039</string>
-				<string>2040</string>
-				<string>2050</string>
-				<string>2060</string>
-				<string>2070</string>
-				<string>2071</string>
-				<string>2080</string>
-				<string>3901</string>
+				<string>2</string>
 			</array>
 			
 			<key>default</key>
@@ -125,19 +101,7 @@
 			<key>PostNotification</key>
 			<string>com.sticktron.wu-lock.settingschanged</string>
 		</dict>
-		
-		
-		
-		<!-- [] Position -->
-		<dict>
-			<key>cell</key>
-			<string>PSGroupCell</string>
-			<key>label</key>
-			<string>Adjust Position</string>
-			<key>footerText</key>
-			<string>Negative numbers move the glyph down.</string>
-		</dict>
-		
+				
 		<!-- Y-offset -->
 		<dict>
 			<key>cell</key>
@@ -239,8 +203,6 @@
 			<key>alignment</key>
 			<integer>1</integer>
 		</dict>
-		
-		
 		
 		
 		
