@@ -1,3 +1,6 @@
+.theos
+obj
+packages
 theos
 *.xcworkspace
 _Releases
